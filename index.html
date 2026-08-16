@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#3b82f6">
+    <title>متجر تطبيقات المجتمع | Elshori7y</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; background-color: #0f172a; color: #f8fafc; transition: background-color 0.3s, color 0.3s; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .glass-strong { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
+        .app-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
+        .loading-spinner { animation: spin 1s linear infinite; }
+        .role-card { transition: all 0.3s ease; cursor: pointer; border: 2px solid transparent; }
+        .role-card:hover, .role-card.selected { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); transform: scale(1.02); }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        /* Inputs styling */
+        .input-field { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 0.5rem; padding: 0.75rem; color: white; outline: none; transition: all 0.2s; }
+        .input-field:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); }
+        
+        /* Chat Widget */
+        .chat-bubble { max-width: 80%; padding: 10px 14px; border-radius: 12px; margin-bottom: 8px; font-size: 0.9rem; line-height: 1.4; }
+        .chat-user { background: #3b82f6; color: white; align-self: flex-end; border-bottom-left-radius: 2px; }
+        .chat-ai { background: #1e293b; color: #e2e8f0; align-self: flex-start; border-bottom-right-radius: 2px; border: 1px solid #334155; }
+        .ai-sparkle { animation: pulse-amber 2s infinite; }
+        @keyframes pulse-amber { 0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(251, 191, 36, 0); } 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); } }
+
+        /* Tabs & Utilities */
+        .tab-btn { padding: 0.75rem 1.5rem; border-bottom: 2px solid transparent; font-weight: 600; color: #94a3b8; transition: all 0.3s; }
+        .tab-btn.active { border-bottom-color: #3b82f6; color: #3b82f6; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* --- LIGHT MODE OVERRIDES --- */
+        body.light-mode { background-color: #f8fafc; color: #0f172a; }
+        .light-mode .glass { background: rgba(255, 255, 255, 0.85); border-color: rgba(0,0,0,0.05); }
+        .light-mode .glass-strong { background: rgba(255, 255, 255, 0.98); border-color: rgba(0,0,0,0.1); }
+        .light-mode .bg-slate-900, .light-mode .bg-slate-800 { background-color: #ffffff !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .light-mode .text-white { color: #0f172a !important; }
+        .light-mode .text-gray-400 { color: #64748b !important; }
+        .light-mode .text-gray-300 { color: #475569 !important; }
+        .light-mode .border-slate-700 { border-color: #e2e8f0 !important; }
+        .light-mode .input-field { background-color: #f1f5f9; border-color: #cbd5e1; color: #0f172a; }
+        .light-mode .chat-ai { background-color: #f1f5f9; color: #0f172a; border-color: #e2e8f0; }
+        .light-mode #ai-app-code-display { background-color: #f1f5f9; color: #047857; }
+    </style>
+<script src="config.js"></script>
+</head>
+<body class="min-h-screen relative overflow-x-hidden">
+
+    <!-- Navigation -->
+    <nav class="glass sticky top-0 z-40 px-6 py-4 mb-8">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="showSection('home')">
+                <i data-lucide="layout-grid" class="text-blue-500 w-8 h-8"></i>
+                <h1 class="text-2xl font-bold tracking-tight">El<span class="text-blue-500">shori7y</span></h1>
+            </div>
+            
+            <!-- Desktop Nav Links -->
+            <div id="nav-links" class="hidden md:flex items-center gap-6">
+                <button onclick="showSection('home')" class="hover:text-blue-400 font-medium transition">المتجر</button>
+                <button onclick="showSection('community')" class="hover:text-blue-400 font-medium transition flex items-center gap-1"><i data-lucide="users" class="w-4 h-4"></i> المجتمع</button>
+                <button onclick="showSection('leaderboard')" class="hover:text-amber-400 font-medium transition flex items-center gap-1"><i data-lucide="trophy" class="w-4 h-4"></i> الشرف</button>
+                <button onclick="showSection('beginner-dev')" class="hover:text-emerald-400 font-medium transition flex items-center gap-1"><i data-lucide="code" class="w-4 h-4"></i> استوديو AI</button>
+                <button id="nav-submit-btn" onclick="showSection('submit')" class="hidden hover:text-blue-400 font-medium transition flex items-center gap-1"><i data-lucide="plus-circle" class="w-4 h-4"></i> نشر</button>
+            </div>
+
+            <!-- Right Side Tools -->
+            <div class="flex items-center gap-3">
+                <button onclick="installApp()" id="btn-install-pwa" class="hidden bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-500/20 transition flex items-center gap-1 shadow-sm"><i data-lucide="download-cloud" class="w-3 h-3"></i> تثبيت</button>
+                <button onclick="toggleTheme()" class="text-gray-400 hover:text-amber-400 transition p-2 rounded-full bg-slate-800/50" title="الوضع الليلي/النهاري"><i data-lucide="moon" id="theme-icon" class="w-5 h-5"></i></button>
+                
+                <div id="auth-section" class="flex items-center gap-3">
+                    <button id="login-btn" onclick="openLoginModal()" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-bold transition shadow-lg shadow-blue-900/20">دخول</button>
+                    <div id="user-info" class="hidden flex items-center gap-4">
+                        <div class="relative">
+                            <button onclick="toggleNotifications()" class="text-gray-400 hover:text-white transition p-2 relative rounded-full bg-slate-800/50"><i data-lucide="bell" class="w-5 h-5"></i><span id="notif-badge" class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full hidden border border-slate-900"></span></button>
+                            <div id="notif-dropdown" class="hidden absolute left-0 mt-2 w-72 max-h-80 overflow-y-auto glass-strong rounded-xl shadow-2xl border border-slate-700 p-2 z-50">
+                                <h4 class="text-sm font-bold text-white mb-2 p-2 border-b border-slate-700">الإشعارات</h4>
+                                <div id="notif-list" class="space-y-1"></div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end cursor-pointer group" onclick="showSection('profile')">
+                            <span id="user-name" class="text-sm font-bold text-white group-hover:text-blue-400 transition flex items-center"></span>
+                            <span id="user-role-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-300"></span>
+                        </div>
+                        <button onclick="logout()" class="p-2 rounded-full hover:bg-red-500/20 hover:text-red-400 transition text-gray-400" title="تسجيل خروج"><i data-lucide="log-out" class="w-5 h-5"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 pb-20 relative z-0">
+        
+        <!-- Section: Home (Approved Apps) -->
+        <section id="home-section" class="section">
+            <div class="mb-12 text-center">
+                <h2 class="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">متجر تطبيقات المطورين العرب</h2>
+                <p class="text-gray-400 max-w-2xl mx-auto text-lg mb-4">شارك إبداعاتك البرمجية مع مجتمع Elshori7y.</p>
+                <div class="inline-block bg-blue-500/10 border border-blue-500/30 px-5 py-2 rounded-full animate-bounce-slow mb-6"><p class="text-blue-400 font-bold tracking-wide text-sm flex items-center gap-2"><i data-lucide="sparkles" class="w-4 h-4"></i> معنا جميعكم مطورين</p></div>
+                <div class="flex justify-center mb-4"><button onclick="showSection('beginner-dev')" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-orange-500 hover:to-amber-500 text-white px-6 md:px-8 py-3 rounded-full font-black shadow-lg shadow-amber-500/30 flex items-center gap-2 transition-transform hover:scale-105"><i data-lucide="wand-2" class="w-5 h-5"></i> جرب صانع التطبيقات بالذكاء الاصطناعي الآن!</button></div>
+            </div>
+
+            <!-- Smart Search Bar -->
+            <div class="mb-10 max-w-2xl mx-auto relative group">
+                <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none"><i data-lucide="search" class="w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors"></i></div>
+                <input type="text" id="search-input" oninput="searchApps()" placeholder="ابحث عن تطبيق بالاسم أو الوصف..." class="w-full bg-slate-800/80 border border-slate-700 rounded-full py-4 pr-12 pl-6 text-white focus:outline-none focus:border-blue-500 shadow-lg focus:shadow-blue-900/30 transition-all text-sm">
+            </div>
+
+            <!-- AI App Recommender -->
+            <div class="mb-10 max-w-2xl mx-auto glass p-6 rounded-2xl border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)] relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                <h3 class="font-bold text-blue-400 mb-3 flex items-center gap-2 relative z-10"><i data-lucide="sparkles" class="w-5 h-5"></i> رشحلي تطبيق بالذكاء الاصطناعي</h3>
+                <div class="flex flex-col sm:flex-row gap-3 relative z-10">
+                    <input type="text" id="ai-recommend-input" placeholder="نفسك في تطبيق بيعمل إيه؟..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none shadow-inner">
+                    <button onclick="getAIRecommendation()" id="btn-recommend" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-6 py-3 rounded-xl font-bold transition shadow-lg flex items-center justify-center gap-2 whitespace-nowrap">
+                        رشحلي <i data-lucide="bot" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <div id="ai-recommend-result" class="hidden mt-4 p-5 bg-slate-900/80 rounded-xl text-sm text-gray-300 whitespace-pre-wrap leading-relaxed border border-blue-500/20 relative z-10"></div>
+            </div>
+
+            <!-- Trending Posts -->
+            <div class="mb-10">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold flex items-center gap-2 text-white"><i data-lucide="trending-up" class="text-amber-400"></i> نقاشات رائجة</h3>
+                    <button onclick="showSection('community')" class="text-sm text-blue-400 hover:text-blue-300 transition flex items-center gap-1">المزيد <i data-lucide="arrow-left" class="w-4 h-4"></i></button>
+                </div>
+                <div id="trending-posts-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="col-span-full flex justify-center py-5"><i data-lucide="loader-2" class="loading-spinner w-8 h-8 text-amber-400"></i></div>
+                </div>
+            </div>
+
+            <!-- Apps Categories -->
+            <div class="mb-6">
+                <h3 class="text-2xl font-bold mb-4 flex items-center gap-2 text-white"><i data-lucide="smartphone" class="text-blue-400"></i> استكشف التطبيقات</h3>
+                <div class="flex gap-2 overflow-x-auto pb-4 mb-4 hide-scrollbar" id="app-categories">
+                    <button onclick="filterApps('all')" id="cat-all" class="cat-btn bg-blue-600 text-white px-5 py-2 rounded-full whitespace-nowrap text-sm font-bold transition shadow-lg shadow-blue-900/20">الكل</button>
+                    <button onclick="filterApps('games')" id="cat-games" class="cat-btn bg-slate-800 text-gray-300 hover:bg-slate-700 px-5 py-2 rounded-full whitespace-nowrap text-sm font-bold transition">ألعاب</button>
+                    <button onclick="filterApps('social')" id="cat-social" class="cat-btn bg-slate-800 text-gray-300 hover:bg-slate-700 px-5 py-2 rounded-full whitespace-nowrap text-sm font-bold transition">تواصل اجتماعي</button>
+                    <button onclick="filterApps('tools')" id="cat-tools" class="cat-btn bg-slate-800 text-gray-300 hover:bg-slate-700 px-5 py-2 rounded-full whitespace-nowrap text-sm font-bold transition">أدوات</button>
+                    <button onclick="filterApps('education')" id="cat-education" class="cat-btn bg-slate-800 text-gray-300 hover:bg-slate-700 px-5 py-2 rounded-full whitespace-nowrap text-sm font-bold transition">تعليم</button>
+                    <button onclick="filterApps('other')" id="cat-other" class="cat-btn bg-slate-800 text-gray-300 hover:bg-slate-700 px-5 py-2 rounded-full whitespace-nowrap text-sm font-bold transition">أخرى</button>
+                </div>
+            </div>
+
+            <div id="apps-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="col-span-full flex flex-col items-center justify-center py-20 opacity-70">
+                    <i data-lucide="loader-2" class="loading-spinner w-12 h-12 text-blue-500 mb-4"></i>
+                    <p>جاري تحميل التطبيقات...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Leaderboard -->
+        <section id="leaderboard-section" class="section hidden max-w-4xl mx-auto">
+            <div class="mb-8 text-center flex flex-col items-center relative">
+                <div class="absolute top-0 w-64 h-64 bg-amber-500/20 rounded-full blur-3xl -z-10"></div>
+                <h2 class="text-4xl font-black mb-2 text-amber-400 drop-shadow-lg flex items-center gap-3"><i data-lucide="trophy" class="w-8 h-8"></i> لوحة الشرف</h2>
+                <p class="text-gray-300 mb-4 text-lg">أكثر المطورين والأعضاء تأثيراً ونشاطاً في مجتمع Elshori7y 🌟</p>
+                <div class="bg-slate-800/80 border border-slate-700 rounded-lg p-3 text-xs text-gray-400 inline-block shadow-inner">تُحسب النقاط بناءً على: التطبيقات، المنشورات، الإعجابات، وعدد التحميلات.</div>
+            </div>
+            <div id="leaderboard-list" class="space-y-4 relative z-10"><div class="flex justify-center py-10"><i data-lucide="loader-2" class="loading-spinner w-8 h-8 text-amber-500"></i></div></div>
+        </section>
+
+        <!-- Section: Community -->
+        <section id="community-section" class="section hidden">
+            <div class="max-w-3xl mx-auto">
+                <div class="mb-8 text-center flex flex-col items-center">
+                    <h2 class="text-3xl font-bold mb-2">مجتمع Elshori7y 💬</h2>
+                    <p class="text-gray-400 mb-4">اطلب تطبيقات، شارك أفكارك، وناقش مع المطورين.</p>
+                    <button onclick="summarizeCommunity()" id="btn-summarize-community" class="bg-amber-500/20 text-amber-400 border border-amber-500/50 hover:bg-amber-500/30 px-4 py-2 rounded-full text-sm font-bold transition flex items-center gap-2"><i data-lucide="sparkles" class="w-4 h-4"></i> نبض المجتمع الآن ✨</button>
+                </div>
+                <div id="community-pulse-result" class="hidden mb-8 glass p-5 rounded-2xl border border-amber-500/30 bg-amber-500/5 shadow-lg shadow-amber-900/10"></div>
+
+                <!-- Trending inside community -->
+                <div class="mb-10">
+                    <h3 class="text-2xl font-bold mb-4 flex items-center gap-2 text-white"><i data-lucide="trending-up" class="text-amber-400"></i> نقاشات رائجة</h3>
+                    <div id="trending-posts-grid-community" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                </div>
+
+                <div class="glass p-6 rounded-2xl mb-8 border border-blue-500/20">
+                    <form id="post-form" class="space-y-4">
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="block text-sm font-medium text-gray-300">محتوى المنشور</label>
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="generateDiscussionPrompt('post-content')" class="text-xs flex items-center gap-1 text-purple-400 hover:text-purple-300 transition bg-purple-900/20 px-2 py-1 rounded-lg border border-purple-500/30"><i data-lucide="message-square-plus" class="w-3 h-3"></i> سؤال نقاشي ✨</button>
+                                    <button type="button" onclick="enhancePost('post-content')" class="text-xs flex items-center gap-1 text-amber-400 hover:text-amber-300 transition bg-amber-900/20 px-2 py-1 rounded-lg border border-amber-500/30"><i data-lucide="sparkles" class="w-3 h-3"></i> صياغة ذكية</button>
+                                </div>
+                            </div>
+                            <textarea id="post-content" required rows="3" placeholder="بم تفكر؟ أو ما التطبيق الذي تبحث عنه؟" class="input-field bg-slate-800/50 resize-none text-lg"></textarea>
+                        </div>
+                        <div class="flex justify-between items-center flex-wrap gap-4">
+                            <div class="flex items-center gap-2 text-xs text-amber-400/80 bg-amber-500/10 px-3 py-2 rounded-lg"><i data-lucide="shield-check" class="w-4 h-4"></i><span>يرجى الالتزام بالمعايير وعدم نشر أي محتوى مسيء.</span></div>
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg text-white font-bold transition shadow-lg flex items-center gap-2">نشر <i data-lucide="send" class="w-4 h-4"></i></button>
+                        </div>
+                    </form>
+                </div>
+                <div id="posts-feed" class="space-y-6"><div class="flex justify-center py-10"><i data-lucide="loader-2" class="loading-spinner w-8 h-8 text-blue-500"></i></div></div>
+            </div>
+        </section>
+
+        <!-- Section: Beginner Developers (AI Studio) -->
+        <section id="beginner-dev-section" class="section hidden max-w-4xl mx-auto">
+            <div class="mb-8 text-center flex flex-col items-center">
+                <h2 class="text-3xl font-bold mb-2 text-white">استوديو المبتدئين الذكي 🛠️</h2>
+                <p class="text-amber-400 font-bold mb-4">✨ معنا جميعكم مطورين ✨</p>
+                <p class="text-gray-400 max-w-2xl text-sm leading-relaxed">ليس لديك خبرة في البرمجة؟ اكتب فكرة التطبيق أو اللعبة التي تحلم بها وسيقوم الذكاء الاصطناعي ببرمجتها لك فوراً.</p>
+            </div>
+            <div class="glass p-6 rounded-2xl mb-8 border border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.1)]">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2"><i data-lucide="terminal-square" class="w-4 h-4 text-indigo-400"></i> ماذا تريد أن تصنع اليوم؟</label>
+                        <textarea id="ai-app-prompt" rows="3" placeholder="مثال: أريد لعبة إكس أو (Tic Tac Toe) بتصميم عصري وألوان داكنة وتعمل على الموبايل..." class="input-field bg-slate-800/50 resize-none text-lg"></textarea>
+                    </div>
+                    <button onclick="buildAppWithAI()" id="btn-generate-app" class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg flex justify-center items-center gap-2"><span>اصنع تطبيقي الآن</span> <i data-lucide="wand-2" class="w-5 h-5"></i></button>
+                </div>
+            </div>
+            <div id="ai-app-result-area" class="hidden glass p-4 rounded-2xl border border-slate-700">
+                <div class="flex border-b border-slate-700 mb-4">
+                    <button class="tab-btn active text-sm" onclick="switchAITab('preview')" id="tab-ai-preview">معاينة التطبيق 📱</button>
+                    <button class="tab-btn text-sm" onclick="switchAITab('code')" id="tab-ai-code">الكود المصدري 💻</button>
+                </div>
+                <div id="ai-content-preview" class="w-full bg-white rounded-lg overflow-hidden h-[550px] relative"><iframe id="ai-app-iframe" class="w-full h-full border-none bg-white" sandbox="allow-scripts allow-same-origin"></iframe></div>
+                <div id="ai-content-code" class="hidden relative h-[550px]">
+                    <button onclick="copyAICode()" class="absolute top-3 left-3 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-lg z-10"><i data-lucide="copy" class="w-4 h-4"></i> نسخ الكود</button>
+                    <div class="absolute top-3 right-3 flex gap-2 z-10">
+                        <button onclick="explainCodeWithAI()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-lg"><i data-lucide="book-open" class="w-4 h-4"></i> اشرحلي الكود</button>
+                        <button onclick="reviewCodeWithAI()" class="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-lg"><i data-lucide="search-code" class="w-4 h-4"></i> مراجعة الكود</button>
+                    </div>
+                    <textarea id="ai-app-code-display" readonly class="w-full h-full bg-slate-900 text-emerald-400 p-5 rounded-lg font-mono text-sm resize-none focus:outline-none leading-relaxed border border-slate-700"></textarea>
+                </div>
+            </div>
+            
+            <!-- Code Review Modal -->
+            <div id="review-modal" class="fixed inset-0 z-[70] hidden flex items-center justify-center bg-slate-900/90 backdrop-blur-sm p-4">
+                <div class="glass-strong w-full max-w-lg rounded-3xl shadow-2xl p-6 relative border border-purple-500/20">
+                    <button onclick="document.getElementById('review-modal').classList.add('hidden')" class="absolute top-4 left-4 text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    <div class="flex items-center gap-2 mb-4 text-purple-400"><i data-lucide="microscope" id="review-modal-icon" class="w-6 h-6"></i> <h3 class="text-xl font-bold" id="review-modal-title">تحليل الكود الذكي</h3></div>
+                    <div id="review-content" class="text-sm text-gray-300 leading-relaxed max-h-[60vh] overflow-y-auto"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Profile & Settings -->
+        <section id="profile-section" class="section hidden max-w-5xl mx-auto">
+            <div class="glass p-8 rounded-3xl mb-8 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
+                <div class="flex items-center gap-6 relative z-10">
+                    <div class="relative group cursor-pointer">
+                        <div class="w-24 h-24 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-4xl font-bold shadow-xl border-4 border-slate-800 overflow-hidden" id="profile-avatar">👤</div>
+                        <label class="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer rounded-full" title="تغيير الصورة الشخصية"><i data-lucide="camera" class="w-8 h-8 text-white"></i><input type="file" accept="image/*" class="hidden" onchange="handleAvatarUpload(event)"></label>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold mb-1 flex items-center gap-2" id="profile-name-display">اسم المستخدم</h2>
+                        <p class="text-gray-400 mb-2 text-sm" id="profile-email-display">email@example.com</p>
+                        <div id="profile-stats" class="flex gap-2 mb-3"></div>
+                        <div class="flex gap-2" id="profile-badges"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dev-tools-section" class="hidden mb-6">
+                <div class="glass p-5 rounded-2xl border border-amber-500/30 bg-amber-500/5 relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-orange-500 opacity-50"></div>
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-bold text-amber-400 mb-2 flex items-center gap-2"><i data-lucide="lightbulb" class="w-5 h-5"></i> إلهام المطورين بالذكاء الاصطناعي ✨</h3>
+                            <p class="text-sm text-gray-400 mb-3 max-w-2xl">تفتقد لشرارة الإبداع؟ دع الذكاء الاصطناعي يقترح لك فكرة تطبيق مبتكرة لتطويرها.</p>
+                        </div>
+                        <button onclick="generateAppIdea()" id="btn-generate-idea" class="bg-amber-600 hover:bg-amber-500 text-white px-5 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 shadow-lg shadow-amber-900/20 whitespace-nowrap">اقترح فكرة <i data-lucide="sparkles" class="w-4 h-4"></i></button>
+                    </div>
+                    <div id="idea-result" class="hidden mt-4 p-5 bg-slate-900/60 rounded-xl border border-slate-700 text-sm text-gray-300 whitespace-pre-wrap leading-relaxed"></div>
+                </div>
+            </div>
+
+            <div class="flex border-b border-slate-700 mb-6 overflow-x-auto hide-scrollbar">
+                <button class="tab-btn active whitespace-nowrap" onclick="switchProfileTab('posts')" id="tab-posts">منشوراتي</button>
+                <button class="tab-btn hidden whitespace-nowrap" onclick="switchProfileTab('apps')" id="tab-apps">تطبيقاتي المنشورة</button>
+                <button class="tab-btn whitespace-nowrap" onclick="switchProfileTab('visits')" id="tab-visits">سجل الزيارات 👁️</button>
+                <button class="tab-btn whitespace-nowrap" onclick="switchProfileTab('settings')" id="tab-settings">إعدادات الحساب ⚙️</button>
+            </div>
+
+            <div id="profile-post-create-box" class="glass p-5 rounded-2xl mb-6 border border-blue-500/20">
+                <form id="profile-post-form" class="space-y-3">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-sm font-medium text-gray-300">محتوى المنشور</label>
+                            <div class="flex gap-2">
+                                <button type="button" onclick="generateDiscussionPrompt('profile-post-content')" class="text-xs flex items-center gap-1 text-purple-400 hover:text-purple-300 transition bg-purple-900/20 px-2 py-1 rounded-lg border border-purple-500/30"><i data-lucide="message-square-plus" class="w-3 h-3"></i> سؤال نقاشي ✨</button>
+                                <button type="button" onclick="enhancePost('profile-post-content')" class="text-xs flex items-center gap-1 text-amber-400 hover:text-amber-300 transition bg-amber-900/20 px-2 py-1 rounded-lg border border-amber-500/30"><i data-lucide="sparkles" class="w-3 h-3"></i> صياغة ذكية</button>
+                            </div>
+                        </div>
+                        <textarea id="profile-post-content" required rows="4" placeholder="أضف منشوراً جديداً للمجتمع من هنا..." class="input-field bg-slate-800/50 resize-none text-sm"></textarea>
+                    </div>
+                    <div class="flex justify-between items-center"><span class="text-xs text-gray-500"><i data-lucide="info" class="w-3 h-3 inline"></i> سيظهر منشورك في قسم المجتمع العام</span><button type="submit" class="bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-lg text-white font-bold transition shadow-lg flex items-center gap-2 text-sm">نشر <i data-lucide="send" class="w-4 h-4"></i></button></div>
+                </form>
+            </div>
+
+            <div id="profile-content-posts" class="space-y-4"></div>
+            <div id="profile-content-apps" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            <div id="profile-content-visits" class="hidden space-y-3"></div>
+            
+            <div id="profile-content-settings" class="hidden glass p-6 rounded-2xl border border-slate-700">
+                <h3 class="text-xl font-bold text-white mb-4">المعلومات الشخصية</h3>
+                <div class="flex items-center gap-4 mb-6 pb-6 border-b border-slate-700">
+                    <div class="relative group">
+                        <div id="settings-avatar-preview" class="w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center text-4xl font-bold overflow-hidden border-2 border-blue-500 shadow-lg">👤</div>
+                        <label class="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer rounded-full"><i data-lucide="camera" class="w-6 h-6 text-white"></i><input type="file" accept="image/*" class="hidden" onchange="handleAvatarUpload(event)"></label>
+                    </div>
+                    <div><p class="text-sm font-bold text-white">الصورة الشخصية</p><p class="text-xs text-gray-400">اضغط على الصورة لتغييرها</p></div>
+                </div>
+                <form id="settings-form" class="space-y-4">
+                    <div><label class="block text-sm font-medium text-gray-300 mb-1">اسم المستخدم</label><input type="text" id="settings-username" required class="input-field" disabled></div>
+                    <div><label class="block text-sm font-medium text-gray-300 mb-1">البريد الإلكتروني</label><input type="email" id="settings-email" required class="input-field" disabled></div>
+                </form>
+
+                <!-- ADMIN TOOLS -->
+                <div id="admin-tools-container" class="hidden mt-10 pt-8 border-t border-slate-700 border-dashed">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="p-3 bg-red-500/20 rounded-xl text-red-400"><i data-lucide="shield-alert" class="w-6 h-6"></i></div>
+                        <div><h3 class="text-2xl font-bold text-white">لوحة تحكم المؤسس</h3><p class="text-xs text-gray-400">إدارة المتجر وتوثيق الحسابات والبلاغات</p></div>
+                    </div>
+                    <div class="mb-8">
+                        <h4 class="text-lg font-bold text-white flex items-center gap-2 mb-4"><i data-lucide="badge-check" class="w-5 h-5 text-blue-400"></i> توثيق الحسابات (شارة زرقاء)</h4>
+                        <div class="bg-slate-800/50 p-5 rounded-2xl border border-blue-500/30 flex flex-col md:flex-row gap-3 items-center">
+                            <input type="text" id="admin-verify-username" placeholder="اكتب اسم المستخدم..." class="input-field flex-1 text-sm py-2">
+                            <button onclick="verifyUser()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 shadow-lg whitespace-nowrap">توثيق <i data-lucide="check-circle" class="w-4 h-4"></i></button>
+                            <button onclick="unverifyUser()" class="bg-slate-700 hover:bg-slate-600 text-white px-5 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 shadow-lg whitespace-nowrap">إلغاء <i data-lucide="x-circle" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                    <div class="mb-8">
+                        <h4 class="text-lg font-bold text-white flex items-center gap-2 mb-4"><i data-lucide="layout-grid" class="w-5 h-5 text-amber-400"></i> التطبيقات المعلقة</h4>
+                        <div id="admin-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-bold text-white flex items-center gap-2 mb-4"><i data-lucide="flag" class="w-5 h-5 text-red-400"></i> البلاغات المرفوعة للإدارة</h4>
+                        <div id="admin-reports-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Submit App -->
+        <section id="submit-section" class="section hidden max-w-2xl mx-auto">
+            <div class="glass p-8 rounded-2xl border-t-4 border-blue-500">
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-3"><div class="p-3 bg-blue-500/20 rounded-xl text-blue-400"><i data-lucide="rocket"></i></div>نشر تطبيق جديد</h2>
+                <form id="app-form" class="space-y-5">
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="block text-sm font-medium text-gray-300">اسم التطبيق</label><button type="button" onclick="suggestAppName()" class="text-xs flex items-center gap-1 text-amber-400 hover:text-amber-300 transition bg-amber-900/20 px-2 py-1 rounded-lg border border-amber-500/30"><i data-lucide="sparkles" class="w-3 h-3"></i> اقترح اسماً</button></div>
+                        <input type="text" id="app-name" required class="input-field" placeholder="اكتب الاسم أو دع الذكاء الاصطناعي يقترحه لك">
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="block text-sm font-medium text-gray-300">الفئة</label><button type="button" onclick="autoCategorize()" class="text-xs flex items-center gap-1 text-blue-400 hover:text-blue-300 transition bg-blue-900/20 px-2 py-1 rounded-lg border border-blue-500/30"><i data-lucide="bot" class="w-3 h-3"></i> تحديد ذكي</button></div>
+                        <select id="app-category" required class="input-field appearance-none cursor-pointer"><option value="games">ألعاب</option><option value="social">تواصل اجتماعي</option><option value="tools">أدوات</option><option value="education">تعليم</option><option value="other">أخرى</option></select>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="block text-sm font-medium text-gray-300">وصف التطبيق</label>
+                            <div class="flex gap-2">
+                                <button type="button" onclick="translateDescription()" class="text-xs flex items-center gap-1 text-green-400 hover:text-green-300 transition bg-green-900/20 px-2 py-1 rounded-lg border border-green-500/30"><i data-lucide="languages" class="w-3 h-3"></i> ترجمة</button>
+                                <button type="button" onclick="enhanceDescription()" class="text-xs flex items-center gap-1 text-amber-400 hover:text-amber-300 transition bg-amber-900/20 px-2 py-1 rounded-lg border border-amber-500/30"><i data-lucide="sparkles" class="w-3 h-3"></i> تحسين</button>
+                            </div>
+                        </div>
+                        <textarea id="app-desc" required rows="4" placeholder="اكتب وصفاً قصيراً وسنقوم بتحسينه..." class="input-field"></textarea>
+                    </div>
+                    <div class="space-y-3">
+                        <label class="block text-sm font-medium text-gray-300">ملف التطبيق</label>
+                        <div class="flex bg-slate-800 p-1 rounded-lg mb-2">
+                            <button type="button" onclick="toggleUploadMode('link')" id="btn-mode-link" class="flex-1 py-2 text-sm rounded-md bg-blue-600 text-white transition font-bold flex items-center justify-center gap-2"><i data-lucide="link" class="w-4 h-4"></i> رابط خارجي</button>
+                            <button type="button" onclick="toggleUploadMode('file')" id="btn-mode-file" class="flex-1 py-2 text-sm rounded-md text-gray-400 hover:text-white transition font-bold flex items-center justify-center gap-2"><i data-lucide="upload" class="w-4 h-4"></i> رفع APK</button>
+                        </div>
+                        <div id="mode-link-container"><input type="url" id="app-url" placeholder="https://mediafire.com/..." class="input-field"></div>
+                        <div id="mode-file-container" class="hidden">
+                            <div class="border-2 border-dashed border-slate-600 rounded-xl p-6 text-center hover:border-blue-500 hover:bg-blue-500/5 transition cursor-pointer relative group" onclick="document.getElementById('apk-file').click()">
+                                <input type="file" id="apk-file" accept=".apk,.xapk,.aab" class="hidden" onchange="handleFileSelect(this)">
+                                <div id="upload-icon-area"><div class="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-600 text-gray-400"><i data-lucide="upload-cloud" class="w-6 h-6"></i></div><p class="text-sm font-medium">اضغط لرفع ملف APK</p></div>
+                            </div>
+                            <div id="upload-progress" class="hidden mt-3 bg-slate-800 p-3 rounded-lg border border-slate-700"><div class="flex justify-between text-xs text-gray-300 mb-2"><span id="upload-filename">app.apk</span><span id="progress-percent" class="text-blue-400">0%</span></div><div class="w-full bg-slate-900 rounded-full h-2"><div id="progress-bar" class="bg-blue-500 h-full rounded-full w-0 transition-all"></div></div></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2"><label class="block text-sm font-medium text-gray-300">أيقونة (Emoji)</label><button type="button" onclick="suggestAppIcon()" class="text-xs flex items-center gap-1 text-amber-400 hover:text-amber-300 transition bg-amber-900/20 px-2 py-1 rounded-lg border border-amber-500/30"><i data-lucide="sparkles" class="w-3 h-3"></i> اقتراح ذكي</button></div>
+                        <input type="text" id="app-icon" placeholder="مثال: 🎮" class="input-field text-center text-xl">
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold py-4 rounded-xl transition shadow-lg flex justify-center items-center gap-2"><span>إرسال للمراجعة</span> <i data-lucide="send" class="w-4 h-4"></i></button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass mt-auto border-t border-slate-700/50 py-8 relative z-0">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="text-center md:text-right">
+                <h3 class="text-xl font-bold text-white mb-1">El<span class="text-blue-500">shori7y</span></h3>
+                <p class="text-sm text-gray-400">جميع الحقوق محفوظة &copy; 2026</p>
+                <p class="text-xs text-blue-400/80 mt-1">تطوير وبرمجة: حمزة شاهين (Hamza Shaheen)</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="https://www.facebook.com/hamza.shaheen.544451" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-slate-800 flex items-center justify-center rounded-full text-gray-400 hover:bg-blue-600 hover:text-white transition-all shadow-lg hover:scale-110"><i data-lucide="facebook" class="w-5 h-5"></i></a>
+                <a href="https://www.instagram.com/h.sha_heen" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-slate-800 flex items-center justify-center rounded-full text-gray-400 hover:bg-pink-600 hover:text-white transition-all shadow-lg hover:scale-110"><i data-lucide="instagram" class="w-5 h-5"></i></a>
+                <a href="https://wa.me/201159541317" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-slate-800 flex items-center justify-center rounded-full text-gray-400 hover:bg-green-500 hover:text-white transition-all shadow-lg hover:scale-110"><i data-lucide="phone" class="w-5 h-5"></i></a>
+                <a href="mailto:shaheenomatp@gmail.com" class="w-10 h-10 bg-slate-800 flex items-center justify-center rounded-full text-gray-400 hover:bg-red-500 hover:text-white transition-all shadow-lg hover:scale-110"><i data-lucide="mail" class="w-5 h-5"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- FAB -->
+    <div id="fab-container" class="fixed bottom-6 left-6 z-50 hidden flex-col items-center gap-3">
+        <div id="fab-menu" class="hidden flex-col gap-2 items-end mb-2 transition-all">
+            <button onclick="showSection('submit'); toggleFabMenu();" class="bg-blue-600 hover:bg-blue-500 text-white py-2 px-4 rounded-full shadow-lg flex items-center justify-end gap-2 text-sm font-bold w-36 transition-transform hover:scale-105"><span>نشر تطبيق</span> <i data-lucide="rocket" class="w-4 h-4"></i></button>
+            <button onclick="goToCommunityPost(); toggleFabMenu();" class="bg-indigo-600 hover:bg-indigo-500 text-white py-2 px-4 rounded-full shadow-lg flex items-center justify-end gap-2 text-sm font-bold w-36 transition-transform hover:scale-105"><span>نشر منشور</span> <i data-lucide="message-square" class="w-4 h-4"></i></button>
+        </div>
+        <button onclick="toggleFabMenu()" id="fab-main-btn" class="bg-blue-600 hover:bg-blue-500 text-white p-4 rounded-full shadow-lg shadow-blue-600/40 transition-transform hover:scale-110 flex items-center justify-center relative"><i data-lucide="plus" class="w-6 h-6 transition-transform duration-300" id="fab-icon"></i></button>
+    </div>
+
+    <!-- Chat Widget -->
+    <div id="chat-widget" class="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+        <div id="chat-window" class="hidden glass-strong w-80 md:w-96 h-[400px] rounded-2xl shadow-2xl mb-4 flex flex-col border border-blue-500/30 overflow-hidden transform transition-all origin-bottom-right">
+            <div class="bg-blue-600 p-3 flex justify-between items-center"><h3 class="font-bold text-white text-sm">مساعد Elshori7y الذكي</h3><button onclick="toggleChat()"><i data-lucide="x" class="w-4 h-4 text-white"></i></button></div>
+            <div id="chat-messages" class="flex-1 p-3 overflow-y-auto flex flex-col gap-2"></div>
+            <div class="p-2 bg-slate-800 flex gap-2"><input type="text" id="chat-input" placeholder="اسألني..." class="flex-1 bg-slate-900 border border-slate-700 rounded text-sm px-2 text-white outline-none" onkeypress="handleChatEnter(event)"><button onclick="sendMessage()" class="bg-blue-600 p-2 rounded text-white"><i data-lucide="send" class="w-4 h-4"></i></button></div>
+        </div>
+        <button onclick="toggleChat()" class="ai-sparkle bg-amber-500 hover:bg-amber-400 text-white p-4 rounded-full shadow-lg transition-transform hover:scale-110" title="المساعد الذكي ✨"><i data-lucide="bot" class="w-6 h-6"></i></button>
+    </div>
+
+    <!-- Public Profile Modal -->
+    <div id="public-profile-modal" class="fixed inset-0 z-[80] hidden flex items-center justify-center bg-slate-900/90 backdrop-blur-sm p-4">
+        <div class="glass-strong w-full max-w-sm rounded-3xl shadow-2xl p-8 text-center relative border border-blue-500/20">
+            <button onclick="closePublicProfile()" class="absolute top-4 left-4 text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            <div id="public-profile-content"></div>
+        </div>
+    </div>
+
+    <!-- Rating Modal -->
+    <div id="rating-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-slate-900/90 backdrop-blur-sm p-4">
+        <div class="glass-strong w-full max-w-sm rounded-3xl shadow-2xl p-6 text-center relative border border-amber-500/20">
+            <button onclick="closeRatingModal()" class="absolute top-4 left-4 text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            <div class="w-12 h-12 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-3 text-amber-400 shadow-inner"><i data-lucide="star" class="w-6 h-6 fill-current"></i></div>
+            <h3 class="text-xl font-bold text-white mb-1">قيّم التطبيق</h3>
+            <p id="rating-app-name" class="text-sm text-blue-300 mb-6 font-bold"></p>
+            <div class="flex justify-center gap-2 mb-6 flex-row-reverse" id="star-container"></div>
+            <input type="hidden" id="rating-app-id">
+            <input type="hidden" id="selected-rating" value="1">
+            <button onclick="submitAppRating()" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-orange-500 hover:to-amber-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-amber-900/20">حفظ التقييم</button>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/90 backdrop-blur-sm p-4">
+        <div class="glass-strong w-full max-w-md rounded-2xl shadow-2xl p-8 relative">
+            <button onclick="closeModals()" class="absolute top-4 left-4 text-gray-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+            <h2 class="text-3xl font-bold text-center mb-6">تسجيل الدخول 👋</h2>
+            <form id="login-form" class="space-y-4">
+                <div><label class="block text-xs font-medium text-gray-400 mb-1">اسم المستخدم أو البريد</label><input type="text" id="login-identifier" required class="input-field"></div>
+                <div><label class="block text-xs font-medium text-gray-400 mb-1">كلمة المرور</label><input type="password" id="login-password" required class="input-field"></div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl mt-4 transition">دخول</button>
+            </form>
+            <div class="mt-6 text-center pt-4 border-t border-slate-700/50"><p class="text-gray-400 text-sm">ليس لديك حساب؟ <button onclick="switchToRegister()" class="text-blue-400 hover:underline font-bold">إنشاء حساب جديد</button></p></div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="profile-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/90 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="glass-strong w-full max-w-2xl rounded-2xl shadow-2xl my-10 relative">
+            <button onclick="closeModals()" class="absolute top-4 left-4 z-10 text-gray-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+            <div class="p-8">
+                <div id="reg-step-form">
+                    <h2 class="text-3xl font-bold text-center mb-2">إنشاء حساب جديد 🚀</h2>
+                    <p class="text-center text-gray-400 mb-8">انضم إلى مجتمع المطورين الآن</p>
+                    <div id="role-selection" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="role-card glass p-6 rounded-xl text-center" onclick="selectRole('user')"><div class="bg-slate-700/50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"><i data-lucide="user" class="w-8 h-8 text-slate-300"></i></div><h3 class="text-xl font-bold mb-2">مستخدم عادي</h3></div>
+                        <div class="role-card glass p-6 rounded-xl text-center" onclick="selectRole('developer')"><div class="bg-blue-600/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"><i data-lucide="code-2" class="w-8 h-8 text-blue-400"></i></div><h3 class="text-xl font-bold mb-2 text-blue-400">مطور تطبيقات</h3></div>
+                    </div>
+                    <form id="profile-form" class="hidden space-y-4">
+                        <input type="hidden" id="selected-role">
+                        <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700 mb-4">
+                            <div class="space-y-3">
+                                <div><label class="block text-xs font-medium text-gray-400 mb-1">اسم المستخدم</label><input type="text" id="reg-username" required class="input-field"></div>
+                                <div><label class="block text-xs font-medium text-gray-400 mb-1">البريد الإلكتروني (لتلقي الرمز)</label><input type="email" id="reg-email" required class="input-field"></div>
+                                <div><label class="block text-xs font-medium text-gray-400 mb-1">كلمة المرور (6 أحرف على الأقل)</label><input type="password" id="reg-password" required placeholder="*****" class="input-field"></div>
+                            </div>
+                        </div>
+                        <div id="dev-fields" class="hidden space-y-4 pt-4 border-t border-slate-700">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-medium text-gray-400 mb-1">الخبرة</label><input type="number" id="dev-exp" class="input-field"></div>
+                                <div><label class="block text-xs font-medium text-gray-400 mb-1">رابط الأعمال</label><input type="url" id="dev-portfolio" class="input-field"></div>
+                            </div>
+                        </div>
+                        <div class="pt-4 space-y-3">
+                            <button type="button" onclick="requestVerificationCode()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg">التالي (تأكيد البريد)</button>
+                            <button type="button" onclick="resetRoleSelection()" class="w-full text-gray-400 text-xs py-2 hover:text-white">تغيير نوع الحساب</button>
+                        </div>
+                    </form>
+                </div>
+                <div id="reg-step-verify" class="hidden text-center py-6">
+                    <div class="w-20 h-20 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-400"><i data-lucide="mail-check" class="w-10 h-10"></i></div>
+                    <h2 class="text-2xl font-bold mb-2">تأكيد البريد الإلكتروني</h2>
+                    <p class="text-gray-400 mb-6 text-sm">تم إرسال رمز مكون من 6 أرقام إلى <span id="verify-email-display" class="text-white font-bold"></span></p>
+                    <div class="max-w-xs mx-auto space-y-4">
+                        <input type="text" id="verify-code-input" placeholder="أدخل الرمز هنا" class="input-field text-center text-2xl tracking-[0.5em] font-bold" maxlength="6">
+                        <button onclick="confirmRegistration()" id="btn-confirm-reg" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl transition shadow-lg">تأكيد وإنشاء الحساب</button>
+                        <button onclick="cancelVerification()" class="w-full text-gray-400 text-sm hover:text-white py-2">تعديل البريد الإلكتروني</button>
+                    </div>
+                </div>
+                <div class="mt-6 text-center pt-4 border-t border-slate-700/50" id="reg-footer-login"><p class="text-gray-400 text-sm">لديك حساب بالفعل؟ <button onclick="switchToLogin()" class="text-blue-400 hover:underline font-bold">تسجيل الدخول</button></p></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, increment, where, getDocs, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = (typeof __firebase_config !== 'undefined')
+            ? JSON.parse(__firebase_config)
+            : (window.ELSHORI7Y_FIREBASE_CONFIG || null);
+        const firebaseReady = !!firebaseConfig;
+        let app = null, auth = null, db = null;
+        if (firebaseReady) {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        }
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'elshori7y-v5';
+
+        let currentUser = null; 
+        let userProfile = null; 
+        let allAppsRaw = [];
+        let allApprovedApps = []; 
+        let allPosts = [];
+        let currentUploadMode = 'link'; 
+        let uploadedFileUrl = null; 
+        let generatedVerificationCode = "";
+        let currentCategoryFilter = 'all';
+        let chatHistory = []; 
+        let currentSearchQuery = '';
+        let verifiedUsersMap = {};
+
+        lucide.createIcons();
+
+        // --- THEME LOGIC ---
+        const savedTheme = localStorage.getItem('elshori7y_theme');
+        if (savedTheme === 'light') { document.body.classList.add('light-mode'); document.getElementById('theme-icon')?.setAttribute('data-lucide', 'sun'); }
+        window.toggleTheme = () => {
+            const isLight = document.body.classList.toggle('light-mode');
+            const icon = document.getElementById('theme-icon');
+            if (isLight) { icon?.setAttribute('data-lucide', 'sun'); localStorage.setItem('elshori7y_theme', 'light'); } 
+            else { icon?.setAttribute('data-lucide', 'moon'); localStorage.setItem('elshori7y_theme', 'dark'); }
+            lucide.createIcons();
+        };
+
+        // --- PWA INSTALL LOGIC ---
+        const manifestData = { name: "متجر Elshori7y", short_name: "Elshori7y", start_url: ".", display: "standalone", background_color: "#0f172a", theme_color: "#3b82f6", icons: [{ src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjM2I4MmY2IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHJlY3QgeD0iMyIgeT0iMyIgd2lkdGg9IjciIGhlaWdodD0iNyIvPjxyZWN0IHg9IjE0IiB5PSIzIiB3aWR0aD0iNyIgaGVpZ2h0PSI3Ii8+PHJlY3QgeD0iMTQiIHk9IjE0IiB3aWR0aD0iNyIgaGVpZ2h0PSI3Ii8+PHBhdGggZD0iTTMgMTRoN20tMy0zLTMgMyAzIDMtbTMtM3YtNyIvPjwvc3ZnPg==", sizes: "192x192", type: "image/svg+xml" }] };
+        const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+        document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${URL.createObjectURL(manifestBlob)}">`);
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; document.getElementById('btn-install-pwa')?.classList.remove('hidden'); });
+        window.installApp = async () => { if (deferredPrompt) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; if (outcome === 'accepted') document.getElementById('btn-install-pwa')?.classList.add('hidden'); deferredPrompt = null; } };
+
+        // --- WELCOME MODAL ---
+        window.closeWelcomeModal = () => {
+            const modal = document.getElementById('welcome-modal');
+            const content = document.getElementById('welcome-modal-content');
+            modal?.classList.remove('opacity-100'); content?.classList.remove('scale-100');
+            setTimeout(() => modal?.classList.add('hidden'), 300);
+        };
+        setTimeout(() => {
+            if (!sessionStorage.getItem('prophet_prayer_shown')) {
+                const modal = document.getElementById('welcome-modal'); const content = document.getElementById('welcome-modal-content');
+                modal?.classList.remove('hidden'); void modal?.offsetWidth;
+                modal?.classList.add('opacity-100'); content?.classList.add('scale-100');
+                sessionStorage.setItem('prophet_prayer_shown', 'true');
+            }
+        }, 800);
+
+        // --- BADGES ---
+        window.getUserBadge = (username) => {
+            let badge = '';
+            if (verifiedUsersMap[username]) badge += `<i data-lucide="badge-check" class="w-4 h-4 text-blue-400 inline-block mx-1" title="حساب موثق"></i>`;
+            if (username === 'Hamza Shaheen') badge += `<span class="inline-flex items-center justify-center bg-gradient-to-r from-amber-400 via-yellow-500 to-orange-500 text-slate-900 text-[10px] font-black px-1.5 py-0.5 rounded-md shadow-[0_0_10px_rgba(245,158,11,0.6)] border border-yellow-200 ml-1" title="المؤسس الرسمي"><i data-lucide="award" class="w-3 h-3 ml-0.5 inline"></i> EL</span>`;
+            return badge;
+        };
+
+        // --- NOTIFICATIONS ---
+        window.sendNotification = async (targetUid, text, iconType = 'bell') => {
+            if (!targetUid || targetUid === userProfile?.uid) return;
+            try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', targetUid), { notifications: arrayUnion({ id: Date.now().toString(), text, type: iconType, read: false, time: Date.now() }) }); } catch (e) { console.log(e); }
+        };
+
+        window.toggleNotifications = async () => {
+            const drp = document.getElementById('notif-dropdown');
+            drp?.classList.toggle('hidden');
+            if(!drp?.classList.contains('hidden') && userProfile) {
+                try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', userProfile.uid), { notifications: (userProfile.notifications || []).map(n => ({...n, read: true})) }); document.getElementById('notif-badge')?.classList.add('hidden'); } catch(e){}
+            }
+        };
+
+        function renderNotifications() {
+            if(!userProfile) return; const notifs = userProfile.notifications || [];
+            if (notifs.filter(n => !n.read).length > 0) document.getElementById('notif-badge')?.classList.remove('hidden'); else document.getElementById('notif-badge')?.classList.add('hidden');
+            const list = document.getElementById('notif-list');
+            if (notifs.length === 0) { list.innerHTML = '<div class="p-4 text-center text-xs text-gray-500">لا توجد إشعارات</div>'; return; }
+            list.innerHTML = [...notifs].sort((a,b)=> b.time - a.time).slice(0, 20).map(n => `<div class="p-2 hover:bg-slate-800 rounded transition flex items-start gap-2 ${!n.read ? 'bg-slate-800/50' : ''}"><i data-lucide="${n.type}" class="w-4 h-4 text-blue-400 mt-0.5"></i><div><p class="text-xs text-gray-300 leading-tight">${n.text}</p><span class="text-[9px] text-gray-500">${new Date(n.time).toLocaleDateString('ar-EG')}</span></div></div>`).join('');
+            lucide.createIcons();
+        }
+
+        // --- PUBLIC PROFILE & VISITS LOGIC ---
+        window.viewPublicProfile = async (uid) => {
+            if (!uid) return;
+            const modal = document.getElementById('public-profile-modal');
+            const container = document.getElementById('public-profile-content');
+            modal?.classList.remove('hidden');
+            container.innerHTML = '<i data-lucide="loader-2" class="w-8 h-8 loading-spinner mx-auto text-blue-500 my-10"></i>';
+            lucide.createIcons();
+
+            try {
+                const userDoc = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', uid));
+                if (!userDoc.exists()) { container.innerHTML = '<div class="py-10 text-gray-400">حساب غير موجود.</div>'; return; }
+                const u = userDoc.data();
+                
+                if (userProfile && userProfile.uid !== uid) {
+                    let visits = u.visits || [];
+                    visits = visits.filter(v => v.uid !== userProfile.uid); 
+                    visits.unshift({ uid: userProfile.uid, username: userProfile.username, photoURL: userProfile.photoURL || null, time: Date.now() });
+                    if(visits.length > 30) visits = visits.slice(0, 30);
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', uid), { visits });
+                    window.sendNotification(uid, `👀 قام ${userProfile.username} بزيارة ملفك الشخصي`, 'eye');
+                }
+
+                const avatar = u.photoURL ? `<img src="${u.photoURL}" class="w-24 h-24 rounded-full mx-auto object-cover border-4 border-blue-500/30 shadow-lg">` : `<div class="w-24 h-24 bg-slate-700 rounded-full flex items-center justify-center text-4xl font-bold mx-auto border-4 border-blue-500/30 shadow-lg">${u.username.charAt(0).toUpperCase()}</div>`;
+                const roleBadge = u.role === 'developer' ? '<span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300">مطور تطبيقات 🛠️</span>' : '<span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">مستخدم نشط 👤</span>';
+                const isFollowing = userProfile?.following?.includes(uid);
+                const followBtn = (userProfile && uid !== userProfile.uid) ? `<button onclick="toggleFollow('${uid}', '${u.username}')" class="mt-5 w-full py-2.5 rounded-xl text-sm font-bold shadow-lg transition ${isFollowing ? 'bg-slate-700 text-white hover:bg-slate-600' : 'bg-blue-600 hover:bg-blue-500 text-white'}">${isFollowing ? 'إلغاء المتابعة' : 'متابعة الحساب'}</button>` : '';
+
+                container.innerHTML = `
+                    ${avatar}
+                    <h3 class="text-2xl font-bold text-white mt-4 flex items-center justify-center gap-1">${u.username} ${window.getUserBadge(u.username)}</h3>
+                    <div class="mt-2">${roleBadge}</div>
+                    <div class="flex justify-center gap-3 mt-6 text-sm text-gray-400">
+                        <div class="bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-700 flex-1"><b class="text-white block text-xl">${u.followers ? u.followers.length : 0}</b>متابعون</div>
+                        <div class="bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-700 flex-1"><b class="text-white block text-xl">${u.following ? u.following.length : 0}</b>يتابع</div>
+                    </div>
+                    ${followBtn}
+                `;
+            } catch(e) {
+                container.innerHTML = '<div class="py-10 text-red-400">حدث خطأ أثناء تحميل الحساب.</div>';
+            }
+        };
+        window.closePublicProfile = () => document.getElementById('public-profile-modal')?.classList.add('hidden');
+
+        // --- AUTH & DATA INIT ---
+        async function seedFounderAccount() {
+            try {
+                const fId = "founder_hamza_shaheen"; const uRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', fId);
+                if (!(await getDoc(uRef)).exists()) await setDoc(uRef, { username: "Hamza Shaheen", email: "sheenomat@gmail.com", password: "Hamza123##", role: "developer", experience: "10", portfolio: "https://elshori7y.app", uid: fId, joinedAt: Date.now(), notifications: [], followers: [], following: [], visits: [] });
+            } catch (e) {}
+        }
+
+        function loadVerifiedUsers() {
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'users'), (snapshot) => {
+                verifiedUsersMap = {}; snapshot.forEach(doc => { if(doc.data().isVerified) verifiedUsersMap[doc.data().username] = true; });
+                if(allApprovedApps.length) renderApprovedApps(); if(allPosts.length) { renderCommunityPosts(); renderTrendingPosts(); }
+                if(!document.getElementById('leaderboard-section')?.classList.contains('hidden')) renderLeaderboard();
+                if(userProfile && !document.getElementById('user-info')?.classList.contains('hidden')) updateNavbarUser();
+                lucide.createIcons();
+            });
+        }
+
+        const initAuth = async () => {
+            if (!firebaseReady) return;
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (e) { console.warn('Firebase setup required:', e); }
+        };
+        initAuth();
+
+        const savedUserId = localStorage.getItem('elshori7y_user_id');
+
+        if (firebaseReady) onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user; await seedFounderAccount(); loadVerifiedUsers(); loadApps(); loadPosts();
+                document.getElementById('login-btn')?.classList.remove('hidden');
+
+                if (savedUserId) {
+                     onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'users', savedUserId), (docSnap) => {
+                         if(docSnap.exists()) { userProfile = docSnap.data(); userProfile.uid = docSnap.id; handleLoginSuccess(); renderNotifications(); }
+                     });
+                }
+            }
+        });
+
+        // --- NAVIGATION ---
+        window.showSection = (name) => { 
+            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden')); document.getElementById(`${name}-section`)?.classList.remove('hidden'); 
+            if (name === 'profile') populateProfile(); if (name === 'leaderboard') renderLeaderboard();
+        };
+
+        window.openLoginModal = () => { document.getElementById('profile-modal')?.classList.add('hidden'); document.getElementById('login-modal')?.classList.remove('hidden'); };
+        window.openRegisterModal = () => { document.getElementById('login-modal')?.classList.add('hidden'); document.getElementById('profile-modal')?.classList.remove('hidden'); resetRegistrationUI(); };
+        window.switchToRegister = () => window.openRegisterModal(); window.switchToLogin = () => window.openLoginModal();
+        window.closeModals = () => { document.getElementById('login-modal')?.classList.add('hidden'); document.getElementById('profile-modal')?.classList.add('hidden'); };
+
+        window.selectRole = (role) => { document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected')); event.currentTarget.classList.add('selected'); document.getElementById('selected-role').value = role; document.getElementById('role-selection')?.classList.add('hidden'); document.getElementById('profile-form')?.classList.remove('hidden'); document.getElementById('dev-fields').style.display = role === 'developer' ? 'block' : 'none'; };
+        window.resetRoleSelection = () => { document.getElementById('profile-form')?.classList.add('hidden'); document.getElementById('role-selection')?.classList.remove('hidden'); document.getElementById('profile-form')?.reset(); };
+        window.resetRegistrationUI = () => { document.getElementById('reg-step-form')?.classList.remove('hidden'); document.getElementById('reg-step-verify')?.classList.add('hidden'); document.getElementById('reg-footer-login')?.classList.remove('hidden'); resetRoleSelection(); };
+
+        // --- LOGIN / REGISTER ---
+        window.requestVerificationCode = async () => {
+            const username = document.getElementById('reg-username').value.trim(); const email = document.getElementById('reg-email').value.trim(); const password = document.getElementById('reg-password').value;
+            if(!username || !email || !password) return showToast("أكمل البيانات");
+            const btn = document.querySelector('button[onclick="requestVerificationCode()"]'); const old = btn.innerText; btn.innerText = "..."; btn.disabled = true;
+            try {
+                const usersList = (await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'users'))).docs.map(d => d.data());
+                if (usersList.some(u => u.username === username)) { btn.innerText = old; btn.disabled = false; return showToast("اسم المستخدم محجوز"); }
+                if (usersList.some(u => u.email === email)) { btn.innerText = old; btn.disabled = false; return showToast("البريد مسجل مسبقاً"); }
+            } catch(e) {}
+            btn.innerText = old; btn.disabled = false;
+            if(password.length < 6) return showToast("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
+            generatedVerificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+            document.getElementById('verify-email-display').innerText = email; document.getElementById('reg-step-form')?.classList.add('hidden'); document.getElementById('reg-footer-login')?.classList.add('hidden'); document.getElementById('reg-step-verify')?.classList.remove('hidden');
+            setTimeout(() => showToast(`الرمز هو ${generatedVerificationCode}`), 1000);
+        };
+
+        window.cancelVerification = () => { document.getElementById('reg-step-form')?.classList.remove('hidden'); document.getElementById('reg-footer-login')?.classList.remove('hidden'); document.getElementById('reg-step-verify')?.classList.add('hidden'); document.getElementById('verify-code-input').value = ''; };
+
+        window.confirmRegistration = async () => {
+            if (document.getElementById('verify-code-input').value !== generatedVerificationCode) return showToast("رمز خاطئ");
+            const btn = document.getElementById('btn-confirm-reg'); btn.innerHTML = `<i data-lucide="loader-2" class="loading-spinner w-5 h-5 mx-auto"></i>`; btn.disabled = true;
+            const userData = { username: document.getElementById('reg-username').value, email: document.getElementById('reg-email').value, password: document.getElementById('reg-password').value, role: document.getElementById('selected-role').value, uid: "user_" + Date.now(), joinedAt: Date.now(), notifications: [], followers: [], following: [], visits: [] };
+            try { 
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', userData.uid), userData); 
+                localStorage.setItem('elshori7y_user_id', userData.uid);
+                onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'users', userData.uid), (docSnap) => {
+                    if(docSnap.exists()) { userProfile = docSnap.data(); userProfile.uid = docSnap.id; handleLoginSuccess(); }
+                });
+                closeModals(); showToast(`أهلاً بك ${userData.username}`); 
+            } catch (err) {} finally { btn.innerText = "تأكيد"; btn.disabled = false; }
+        };
+
+        if(document.getElementById('login-form')) {
+            document.getElementById('login-form').onsubmit = async (e) => {
+                e.preventDefault(); const btn = e.target.querySelector('button'); const old = btn.innerText; btn.innerText = "..."; btn.disabled = true;
+                const identifier = document.getElementById('login-identifier').value.trim(); const password = document.getElementById('login-password').value;
+                try {
+                    const docUser = (await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'users'))).docs.find(d => d.data().username === identifier || d.data().email === identifier);
+                    if (!docUser || docUser.data().password !== password) { showToast("بيانات خاطئة"); btn.innerText = old; btn.disabled = false; return; }
+                    localStorage.setItem('elshori7y_user_id', docUser.id);
+                    onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'users', docUser.id), (docSnap) => { if(docSnap.exists()) { userProfile = docSnap.data(); userProfile.uid = docUser.id; handleLoginSuccess(); } });
+                    showToast(`مرحباً بعودتك!`); closeModals(); e.target.reset(); 
+                } catch (err) { console.error(err); } finally { btn.innerText = old; btn.disabled = false; }
+            };
+        }
+
+        function updateNavbarUser() {
+            if(!userProfile) return;
+            document.getElementById('user-name').innerHTML = (userProfile.photoURL ? `<img src="${userProfile.photoURL}" class="w-6 h-6 rounded-full inline-block ml-1 object-cover border border-slate-600">` : '') + userProfile.username + window.getUserBadge(userProfile.username);
+            const badge = document.getElementById('user-role-badge'); const submitBtn = document.getElementById('nav-submit-btn'); const fab = document.getElementById('fab-container');
+            if (userProfile.role === 'developer') { if(badge) badge.innerText = "مطور"; if(badge) badge.className = "text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300"; submitBtn?.classList.remove('hidden'); fab?.classList.remove('hidden'); fab?.classList.add('flex'); } else { if(badge) badge.innerText = "عضو"; if(badge) badge.className = "text-[10px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-300"; submitBtn?.classList.add('hidden'); fab?.classList.add('hidden'); fab?.classList.remove('flex'); }
+        }
+
+        function handleLoginSuccess() { document.getElementById('login-btn')?.classList.add('hidden'); document.getElementById('user-info')?.classList.remove('hidden'); updateNavbarUser(); renderNotifications(); if(!document.getElementById('profile-section')?.classList.contains('hidden')) populateProfile(); }
+
+        window.logout = () => { userProfile = null; localStorage.removeItem('elshori7y_user_id'); document.getElementById('login-btn')?.classList.remove('hidden'); document.getElementById('user-info')?.classList.add('hidden'); document.getElementById('nav-submit-btn')?.classList.add('hidden'); document.getElementById('fab-container')?.classList.add('hidden'); document.getElementById('fab-container')?.classList.remove('flex'); showSection('home'); showToast("تم الخروج"); };
+        window.toggleFabMenu = () => { const menu = document.getElementById('fab-menu'); menu?.classList.toggle('hidden'); menu?.classList.toggle('flex'); document.getElementById('fab-icon').style.transform = menu?.classList.contains('hidden') ? "rotate(0deg)" : "rotate(45deg)"; };
+        window.goToCommunityPost = () => { showSection('community'); setTimeout(() => document.getElementById('post-content')?.focus(), 100); };
+
+        // --- FOLLOW SYSTEM ---
+        window.toggleFollow = async (targetUid, targetName) => {
+            if (!userProfile) return showToast("يجب تسجيل الدخول");
+            if (userProfile.uid === targetUid) return showToast("لا يمكنك متابعة نفسك");
+            const isFollowing = userProfile.following && userProfile.following.includes(targetUid);
+            try {
+                if (isFollowing) {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', userProfile.uid), { following: arrayRemove(targetUid) });
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', targetUid), { followers: arrayRemove(userProfile.uid) });
+                    showToast(`تم إلغاء متابعة ${targetName}`);
+                } else {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', userProfile.uid), { following: arrayUnion(targetUid) });
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', targetUid), { followers: arrayUnion(userProfile.uid) });
+                    showToast(`أنت تتابع ${targetName} الآن ✅`);
+                    window.sendNotification(targetUid, `بدأ ${userProfile.username} بمتابعتك`, 'user-plus');
+                }
+            } catch (e) { showToast("حدث خطأ"); }
+            if(!document.getElementById('public-profile-modal')?.classList.contains('hidden')) setTimeout(() => window.viewPublicProfile(targetUid), 500);
+        };
+
+        // --- RATING SYSTEM ---
+        window.openRatingModal = (appId, appName) => { if(!userProfile) return showToast("سجل لتقييم التطبيق"); document.getElementById('rating-app-id').value = appId; document.getElementById('rating-app-name').innerText = appName; rateStar(5); document.getElementById('rating-modal')?.classList.remove('hidden'); };
+        window.closeRatingModal = () => document.getElementById('rating-modal')?.classList.add('hidden');
+        window.rateStar = (stars) => { const c = document.getElementById('star-container'); c.innerHTML = ''; for(let i=5; i>=1; i--) { const color = i <= stars ? 'text-amber-400' : 'text-gray-600'; c.innerHTML += `<button onclick="rateStar(${i})" class="star-btn ${color} hover:text-amber-300 transition transform hover:scale-110"><i data-lucide="star" class="w-8 h-8 fill-current"></i></button>`; } document.getElementById('selected-rating').value = stars; lucide.createIcons(); };
+        window.submitAppRating = async () => {
+            const appId = document.getElementById('rating-app-id').value; const stars = parseInt(document.getElementById('selected-rating').value);
+            try {
+                const appRef = doc(db, 'artifacts', appId, 'public', 'data', 'apps', appId); const app = allApprovedApps.find(a => a.id === appId); if(!app) return;
+                let ratings = app.ratings || {}; ratings[userProfile.uid] = stars; let total = 0, count = 0; for(let uid in ratings) { total += ratings[uid]; count++; }
+                await updateDoc(appRef, { ratings, avgRating: total / count, ratingCount: count }); showToast("تم التقييم ⭐"); closeRatingModal();
+            } catch(e) {}
+        };
+
+        window.trackAndDownload = async (appId, url) => { window.open(url, '_blank'); try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'apps', appId), { downloads: increment(1) }); } catch(e) {} };
+
+        // --- LOAD DATA ---
+        function loadApps() { onSnapshot(query(collection(db, 'artifacts', appId, 'public', 'data', 'apps')), (snapshot) => { allAppsRaw = snapshot.docs.map(d => ({id: d.id, ...d.data()})); allApprovedApps = allAppsRaw.filter(a => a.status === 'approved'); renderApprovedApps(); if(!document.getElementById('leaderboard-section')?.classList.contains('hidden')) renderLeaderboard(); renderAdminPanel(); }); }
+        function loadPosts() { onSnapshot(query(collection(db, 'artifacts', appId, 'public', 'data', 'posts')), (snapshot) => { allPosts = snapshot.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.createdAt - a.createdAt); renderCommunityPosts(); renderTrendingPosts(); if(!document.getElementById('profile-section')?.classList.contains('hidden')) populateProfile(); if(!document.getElementById('leaderboard-section')?.classList.contains('hidden')) renderLeaderboard(); renderAdminPanel(); }); }
+
+        window.searchApps = () => { currentSearchQuery = document.getElementById('search-input').value.toLowerCase(); renderApprovedApps(); };
+        window.filterApps = (category) => { currentCategoryFilter = category; document.querySelectorAll('.cat-btn').forEach(btn => { btn.classList.remove('bg-blue-600', 'text-white', 'shadow-lg'); btn.classList.add('bg-slate-800', 'text-gray-300'); }); const activeBtn = document.getElementById(`cat-${category}`); if(activeBtn) { activeBtn.classList.remove('bg-slate-800', 'text-gray-300'); activeBtn.classList.add('bg-blue-600', 'text-white', 'shadow-lg'); } renderApprovedApps(); };
+
+        function renderApprovedApps() {
+            const grid = document.getElementById('apps-grid'); if(!grid) return; grid.innerHTML = '';
+            let appsToShow = allApprovedApps; if (currentCategoryFilter !== 'all') appsToShow = allApprovedApps.filter(a => a.category === currentCategoryFilter);
+            if (currentSearchQuery) appsToShow = appsToShow.filter(a => a.name.toLowerCase().includes(currentSearchQuery) || a.description.toLowerCase().includes(currentSearchQuery) );
+            appsToShow.sort((a,b) => b.createdAt - a.createdAt);
+            if (appsToShow.length === 0) { grid.innerHTML = `<div class="col-span-full text-center py-20 text-gray-500"><i data-lucide="box" class="w-16 h-16 mx-auto opacity-20 mb-3"></i>لا توجد تطبيقات مطابقة</div>`; } 
+            else {
+                appsToShow.forEach(app => {
+                    const dlLabel = app.url.includes('elshori7y.app') ? 'تحميل APK' : 'زيارة الرابط';
+                    const catMap = { 'games': 'ألعاب', 'social': 'تواصل', 'tools': 'أدوات', 'education': 'تعليم', 'other': 'أخرى' };
+                    const isFollowing = userProfile?.following?.includes(app.developerId);
+                    const followBtn = (userProfile && app.developerId !== userProfile.uid) ? `<button onclick="toggleFollow('${app.developerId}', '${app.developerName}')" class="text-[9px] ${isFollowing ? 'bg-slate-700 text-gray-300' : 'bg-blue-600/20 text-blue-400'} px-2 py-0.5 rounded hover:bg-blue-600 hover:text-white transition mt-1">${isFollowing ? 'متابَع' : 'متابعة'}</button>` : '';
+
+                    grid.innerHTML += `
+                        <div class="app-card glass p-6 rounded-2xl flex flex-col group relative overflow-hidden border border-slate-700/50 hover:border-blue-500/30">
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl -mr-10 -mt-10 group-hover:bg-blue-500/20 transition"></div>
+                            <div class="relative z-10">
+                                <div class="flex justify-between items-start mb-4"><div class="text-4xl bg-slate-800/50 w-16 h-16 flex items-center justify-center rounded-2xl shadow-inner">${app.icon}</div><div class="flex flex-col items-end gap-1"><span class="text-[10px] text-blue-400 bg-blue-900/30 px-2 py-0.5 rounded border border-blue-500/20 max-w-[150px] truncate text-right flex flex-col items-end"><div class="cursor-pointer hover:bg-blue-600/30 transition" onclick="viewPublicProfile('${app.developerId}')">${app.developerName} ${window.getUserBadge(app.developerName)}</div>${followBtn}</span><span class="text-[10px] text-gray-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">${catMap[app.category] || 'أخرى'}</span></div></div>
+                                <h3 class="text-xl font-bold mb-2 text-white flex justify-between items-center">${app.name} <div class="flex items-center gap-1 text-amber-400 text-xs font-bold bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20 cursor-pointer" onclick="openRatingModal('${app.id}', '${app.name.replace(/'/g, "\\'")}')"><i data-lucide="star" class="w-3 h-3 fill-current"></i> ${app.avgRating ? Number(app.avgRating).toFixed(1) : 'جديد'} <span class="text-gray-400 ml-1">(${app.ratingCount || 0})</span></div></h3>
+                                <div class="text-gray-400 text-sm mb-6 line-clamp-3 leading-relaxed">${marked.parse(app.description)}</div>
+                                <div class="mt-auto flex gap-3">
+                                    <button onclick="trackAndDownload('${app.id}', '${app.url}')" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-center py-2 rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow-lg">${dlLabel} <i data-lucide="download" class="w-4 h-4"></i></button>
+                                    <button onclick="window.reportApp('${app.id}')" class="px-3 py-2 rounded-lg border border-slate-600 hover:border-red-500 hover:text-red-400 transition" title="إبلاغ"><i data-lucide="flag" class="w-4 h-4"></i></button>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+            } lucide.createIcons();
+        }
+
+        // --- POSTS ---
+        const handlePostSubmit = async (e, formId, contentId) => {
+            e.preventDefault(); if (!userProfile) return showToast("سجل الدخول أولاً"); const content = document.getElementById(contentId).value; const btn = e.target.querySelector('button'); btn.disabled = true;
+            try { await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'posts'), { content, authorId: userProfile.uid, authorName: userProfile.username, role: userProfile.role, authorPhoto: userProfile.photoURL || null, createdAt: Date.now(), likes: [], comments: [], reports: 0 }); showToast("تم النشر!"); e.target.reset(); } catch (err) {} finally { btn.disabled = false; }
+        };
+        if (document.getElementById('post-form')) document.getElementById('post-form').onsubmit = (e) => handlePostSubmit(e, 'post-form', 'post-content');
+        if (document.getElementById('profile-post-form')) document.getElementById('profile-post-form').onsubmit = (e) => handlePostSubmit(e, 'profile-post-form', 'profile-post-content');
+
+        function renderTrendingPosts() {
+            const container = document.getElementById('trending-posts-grid'); if (!container) return;
+            const trending = [...allPosts].sort((a, b) => { const scoreA = (a.likes?.length||0) + (a.comments?.length||0); const scoreB = (b.likes?.length||0) + (b.comments?.length||0); return (scoreB === scoreA) ? b.createdAt - a.createdAt : scoreB - scoreA; }).slice(0, 2);
+            if (trending.length === 0) { container.innerHTML = '<div class="col-span-full text-center text-gray-500 py-4 glass">لا توجد نقاشات.</div>'; return; }
+            container.innerHTML = trending.map(post => `<div class="glass p-4 rounded-xl border border-slate-700/50 hover:border-blue-500/30 cursor-pointer" onclick="goToCommunityPost()"><div class="flex items-center gap-2 mb-2 cursor-pointer hover:opacity-80 transition" onclick="viewPublicProfile('${post.authorId}'); event.stopPropagation();"><div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden">${post.authorPhoto ? `<img src="${post.authorPhoto}" class="w-full h-full object-cover">` : post.authorName.charAt(0)}</div><div class="text-sm"><div class="font-bold text-white flex items-center gap-1">${post.authorName} ${window.getUserBadge(post.authorName)}</div><div class="text-[10px] text-gray-400">${new Date(post.createdAt).toLocaleDateString('ar-EG')}</div></div></div><div class="text-gray-300 text-sm line-clamp-2 mb-3 leading-relaxed">${post.content}</div><div class="flex items-center gap-4 text-xs text-gray-400"><span class="flex items-center gap-1"><i data-lucide="heart" class="w-3 h-3 text-red-400"></i> ${post.likes?.length||0}</span><span class="flex items-center gap-1"><i data-lucide="message-circle" class="w-3 h-3 text-blue-400"></i> ${post.comments?.length||0}</span></div></div>`).join('');
+            lucide.createIcons();
+        }
+
+        function generatePostHTML(post) {
+            const hasLiked = userProfile && post.likes?.includes(userProfile.uid);
+            let commentsHTML = post.comments && post.comments.length > 0 ? post.comments.map(c => `<div class="bg-slate-800/50 p-2.5 rounded-lg text-sm mb-2"><span class="font-bold text-blue-400 text-xs cursor-pointer hover:underline" onclick="viewPublicProfile('${c.authorId}')">${c.authorName}:</span> <span class="text-gray-300 ml-1">${c.text}</span></div>`).join('') : '<div class="text-xs text-gray-500 text-center py-2">لا توجد تعليقات بعد!</div>';
+            const isFollowing = userProfile?.following?.includes(post.authorId);
+            const followBtn = (userProfile && post.authorId !== userProfile.uid) ? `<button onclick="toggleFollow('${post.authorId}', '${post.authorName}')" class="text-[10px] ${isFollowing ? 'bg-slate-700 text-gray-300' : 'bg-blue-600/20 text-blue-400'} px-2 py-0.5 rounded hover:bg-blue-600 hover:text-white transition">${isFollowing ? 'متابَع' : 'متابعة'}</button>` : '';
+
+            return `
+            <div class="glass p-5 rounded-2xl border border-slate-700/50 hover:border-slate-600">
+                <div class="flex items-center gap-3 mb-3 cursor-pointer hover:opacity-80 transition inline-flex" onclick="viewPublicProfile('${post.authorId}')"><div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-xl overflow-hidden">${post.authorPhoto ? `<img src="${post.authorPhoto}" class="w-full h-full object-cover">` : post.authorName.charAt(0)}</div><div><div class="flex items-center gap-1 font-bold text-white">${post.authorName} ${window.getUserBadge(post.authorName)} ${followBtn}</div><div class="text-xs text-gray-500">${new Date(post.createdAt).toLocaleDateString('ar-EG')}</div></div></div>
+                <div class="text-gray-200 leading-relaxed whitespace-pre-wrap mb-5">${post.content}</div>
+                <div class="flex items-center justify-between pt-3 border-t border-slate-700/50 text-sm">
+                    <button onclick="toggleLike('${post.id}')" class="flex items-center gap-1.5 transition ${hasLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-400'}"><svg class="w-5 h-5" fill="${hasLiked?'currentColor':'none'}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg><span>${post.likes?.length||0}</span></button>
+                    <button onclick="toggleComments('${post.id}')" class="flex items-center gap-1.5 text-gray-400 hover:text-blue-400 transition"><i data-lucide="message-circle" class="w-5 h-5"></i> <span>${post.comments?.length||0}</span></button>
+                    <button onclick="sharePost('${post.id}')" class="flex items-center gap-1.5 text-gray-400 hover:text-green-400 transition"><i data-lucide="share-2" class="w-5 h-5"></i></button>
+                    <button onclick="reportCommunityPost('${post.id}')" class="flex items-center gap-1.5 text-gray-400 hover:text-red-400 transition"><i data-lucide="flag" class="w-5 h-5"></i></button>
+                </div>
+                <div id="comments-section-${post.id}" class="hidden mt-4 pt-4 border-t border-slate-700/50"><div class="max-h-48 overflow-y-auto mb-3 pr-2">${commentsHTML}</div><div class="flex gap-2 items-center"><button onclick="suggestComment('${post.id}')" class="text-amber-400 hover:text-amber-300 p-1 bg-amber-500/10 rounded"><i data-lucide="sparkles" class="w-5 h-5"></i></button><input type="text" id="comment-input-${post.id}" placeholder="اكتب تعليقاً..." class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-500 outline-none"><button onclick="submitComment('${post.id}')" class="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-lg transition"><i data-lucide="send" class="w-4 h-4"></i></button></div></div>
+            </div>`;
+        }
+        function renderCommunityPosts() {
+            const container = document.getElementById('posts-feed'); if(allPosts.length === 0) { container.innerHTML = '<div class="text-center text-gray-500 glass p-10 rounded-2xl">لا توجد منشورات حتى الآن!</div>'; return; }
+            container.innerHTML = allPosts.map(post => generatePostHTML(post)).join(''); lucide.createIcons();
+        }
+
+        window.toggleLike = async (postId) => {
+            if (!userProfile) return showToast("سجل الدخول للإعجاب");
+            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId); const post = allPosts.find(p => p.id === postId); if (!post) return;
+            try { 
+                if (post.likes && post.likes.includes(userProfile.uid)) await updateDoc(postRef, { likes: arrayRemove(userProfile.uid) }); 
+                else { await updateDoc(postRef, { likes: arrayUnion(userProfile.uid) }); window.sendNotification(post.authorId, `👍 أعجب ${userProfile.username} بمنشورك`, 'heart'); }
+            } catch (e) {}
+        };
+        window.toggleComments = (postId) => document.getElementById(`comments-section-${postId}`)?.classList.toggle('hidden');
+        window.submitComment = async (postId) => {
+            if (!userProfile) return showToast("سجل الدخول للتعليق"); const input = document.getElementById(`comment-input-${postId}`); const text = input.value.trim(); if (!text) return;
+            try { 
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId), { comments: arrayUnion({ text, authorName: userProfile.username, authorId: userProfile.uid, createdAt: Date.now() }) }); 
+                input.value = ''; showToast("تم التعليق!"); setTimeout(() => document.getElementById(`comments-section-${postId}`)?.classList.remove('hidden'), 100);
+                const post = allPosts.find(p => p.id === postId); if(post) window.sendNotification(post.authorId, `💬 علق ${userProfile.username} على منشورك`, 'message-circle');
+            } catch (e) {}
+        };
+        window.sharePost = (postId) => navigator.clipboard.writeText(window.location.href.split('#')[0] + "?post=" + postId).then(() => showToast("تم نسخ الرابط!"));
+        
+        // --- REPORTS ---
+        window.reportCommunityPost = async (postId) => { try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId), { reports: increment(1) }); showToast("تم الإبلاغ 🚩"); window.sendNotification('founder_hamza_shaheen', '🚩 بلاغ جديد على منشور!', 'flag'); } catch (e) {} };
+        window.reportApp = async (appId) => { try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'apps', appId), { reports: increment(1) }); showToast("تم الإبلاغ 🚩"); window.sendNotification('founder_hamza_shaheen', '🚩 بلاغ جديد على تطبيق!', 'flag'); } catch (e) {} };
+
+        // --- PROFILE & VISITS LOG ---
+        window.switchProfileTab = (tab) => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(`tab-${tab}`)?.classList.add('active');
+            ['posts', 'apps', 'settings', 'visits'].forEach(t => document.getElementById(`profile-content-${t}`)?.classList.add('hidden')); document.getElementById(`profile-content-${tab}`)?.classList.remove('hidden');
+            const pb = document.getElementById('profile-post-create-box'); if(pb) pb.classList[tab === 'posts' ? 'remove' : 'add']('hidden');
+        };
+
+        function populateProfile() {
+            if(!userProfile) return showSection('home');
+            document.getElementById('profile-name-display').innerHTML = userProfile.username + window.getUserBadge(userProfile.username);
+            document.getElementById('profile-email-display').innerText = userProfile.email;
+            document.getElementById('profile-stats').innerHTML = `<span class="bg-slate-800 px-3 py-1 rounded-lg text-xs border border-slate-700"><b class="text-white">${userProfile.followers ? userProfile.followers.length : 0}</b> متابعون</span><span class="bg-slate-800 px-3 py-1 rounded-lg text-xs border border-slate-700"><b class="text-white">${userProfile.following ? userProfile.following.length : 0}</b> يتابع</span>`;
+            document.getElementById('profile-avatar').innerHTML = userProfile.photoURL ? `<img src="${userProfile.photoURL}" class="w-full h-full object-cover rounded-full">` : userProfile.username.charAt(0).toUpperCase();
+            document.getElementById('settings-avatar-preview').innerHTML = userProfile.photoURL ? `<img src="${userProfile.photoURL}" class="w-full h-full object-cover rounded-full">` : userProfile.username.charAt(0).toUpperCase();
+            document.getElementById('settings-username').value = userProfile.username; document.getElementById('settings-email').value = userProfile.email;
+            
+            const adminTools = document.getElementById('admin-tools-container');
+            if(adminTools) { if (userProfile.uid === 'founder_hamza_shaheen' || userProfile.email === 'sheenomat@gmail.com') adminTools.classList.remove('hidden'); else adminTools.classList.add('hidden'); }
+
+            if(userProfile.role === 'developer') { document.getElementById('profile-badges').innerHTML = '<span class="bg-blue-600 text-white text-xs px-2 py-1 rounded">مطور تطبيقات</span>'; document.getElementById('tab-apps')?.classList.remove('hidden'); document.getElementById('dev-tools-section')?.classList.remove('hidden'); } 
+            else { document.getElementById('profile-badges').innerHTML = '<span class="bg-slate-700 text-slate-300 text-xs px-2 py-1 rounded">مستخدم نشط</span>'; document.getElementById('tab-apps')?.classList.add('hidden'); document.getElementById('dev-tools-section')?.classList.add('hidden'); switchProfileTab('posts'); }
+
+            const myPosts = allPosts.filter(p => p.authorId === userProfile.uid); const postsContainer = document.getElementById('profile-content-posts');
+            if(myPosts.length === 0) postsContainer.innerHTML = '<div class="text-gray-500 text-center py-6 glass rounded-xl">لم تقم بنشر أي شيء بعد.</div>'; else postsContainer.innerHTML = myPosts.map(post => generatePostHTML(post)).join('');
+
+            // Render Visits Log
+            const visitsContainer = document.getElementById('profile-content-visits');
+            if (visitsContainer) {
+                const visits = userProfile.visits || [];
+                if (visits.length === 0) {
+                    visitsContainer.innerHTML = '<div class="text-gray-500 text-center py-6 glass rounded-xl border border-slate-700/50">لا توجد زيارات لملفك الشخصي حتى الآن. كن نشطاً في المجتمع لجذب الانتباه!</div>';
+                } else {
+                    visitsContainer.innerHTML = visits.map(v => `
+                        <div class="glass p-3 rounded-xl flex items-center gap-3 hover:border-blue-500/30 transition cursor-pointer border border-slate-700/50" onclick="viewPublicProfile('${v.uid}')">
+                            ${v.photoURL ? `<img src="${v.photoURL}" class="w-10 h-10 rounded-full object-cover">` : `<div class="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center font-bold text-sm">${v.username.charAt(0).toUpperCase()}</div>`}
+                            <div class="flex-1">
+                                <h4 class="text-sm font-bold text-white">${v.username}</h4>
+                                <p class="text-[10px] text-gray-500">${new Date(v.time).toLocaleString('ar-EG')}</p>
+                            </div>
+                            <i data-lucide="eye" class="w-4 h-4 text-blue-400"></i>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            if(userProfile.role === 'developer') {
+                const myApps = allApprovedApps.filter(a => a.developerId === userProfile.uid); const appsContainer = document.getElementById('profile-content-apps');
+                if(myApps.length === 0) appsContainer.innerHTML = '<div class="col-span-full text-gray-500 text-center py-6 glass rounded-xl">لم تنشر تطبيقات بعد.</div>';
+                else appsContainer.innerHTML = myApps.map(app => `
+                    <div class="glass p-4 rounded-xl flex flex-col border border-slate-700/50 hover:border-blue-500/50 transition">
+                        <div class="flex gap-4 items-center mb-3"><div class="text-3xl bg-slate-800 p-2 rounded-lg shadow-inner">${app.icon}</div><div><h4 class="font-bold text-white mb-1">${app.name}</h4><span class="text-xs text-green-400 bg-green-500/10 px-2 py-0.5 rounded"><i data-lucide="check" class="w-3 h-3 inline"></i> منشور</span></div></div>
+                        <div class="flex items-center gap-4 mb-2 text-xs text-gray-400 border-b border-slate-700/50 pb-3"><span class="flex items-center gap-1"><i data-lucide="download" class="w-3 h-3 text-emerald-400"></i> ${app.downloads || 0} تحميل</span><span class="flex items-center gap-1"><i data-lucide="star" class="w-3 h-3 text-amber-400"></i> ${app.avgRating ? Number(app.avgRating).toFixed(1) : 'بدون'} تقييم</span></div>
+                        <div id="analysis-result-${app.id}" class="hidden mt-1 mb-3 p-3 bg-slate-900/60 rounded-lg text-xs text-gray-300 whitespace-pre-wrap leading-relaxed border"></div>
+                        <div class="mt-auto pt-3 flex flex-wrap gap-2 justify-end">
+                            <button onclick="analyzeAppSuccess('${app.id}')" class="text-xs bg-emerald-600/20 text-emerald-300 px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm hover:bg-emerald-600 hover:text-white transition"><i data-lucide="bar-chart" class="w-3 h-3"></i> تحليل</button>
+                            <button onclick="generateUserPersona('${app.id}')" class="text-xs bg-cyan-600/20 text-cyan-300 px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm hover:bg-cyan-600 hover:text-white transition"><i data-lucide="users" class="w-3 h-3"></i> الجمهور ✨</button>
+                            <button onclick="generateAppSlogan('${app.id}')" class="text-xs bg-pink-600/20 text-pink-300 px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm hover:bg-pink-600 hover:text-white transition"><i data-lucide="megaphone" class="w-3 h-3"></i> شعار ✨</button>
+                            <button onclick="generateCompetitorAnalysis('${app.id}')" class="text-xs bg-rose-600/20 text-rose-300 px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm hover:bg-rose-600 hover:text-white transition"><i data-lucide="target" class="w-3 h-3"></i> تحليل المنافسين ✨</button>
+                            <button onclick="generateAppFAQ('${app.id}')" class="text-xs bg-fuchsia-600/20 text-fuchsia-300 px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm hover:bg-fuchsia-600 hover:text-white transition"><i data-lucide="help-circle" class="w-3 h-3"></i> أسئلة شائعة</button>
+                        </div>
+                    </div>`).join('');
+            }
+            lucide.createIcons();
+        }
+
+        window.handleAvatarUpload = (event) => {
+            const file = event.target.files[0]; if (!file || !file.type.startsWith('image/')) return showToast("يرجى اختيار ملف صورة");
+            const reader = new FileReader(); reader.onload = (e) => {
+                const img = new Image(); img.onload = async () => {
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const size = 150; canvas.width = size; canvas.height = size;
+                    const minSize = Math.min(img.width, img.height); ctx.drawImage(img, (img.width - minSize) / 2, (img.height - minSize) / 2, minSize, minSize, 0, 0, size, size);
+                    const base64Data = canvas.toDataURL('image/jpeg', 0.8);
+                    if(userProfile) {
+                        userProfile.photoURL = base64Data;
+                        try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', userProfile.uid), { photoURL: base64Data }); showToast("تم تحديث الصورة! ✨"); populateProfile(); updateNavbarUser(); } catch(err) {}
+                    }
+                }; img.src = e.target.result;
+            }; reader.readAsDataURL(file);
+        };
+
+        // --- UPLOAD APP ---
+        window.toggleUploadMode = (mode) => { currentUploadMode = mode; const btnLink = document.getElementById('btn-mode-link'); const btnFile = document.getElementById('btn-mode-file'); const divLink = document.getElementById('mode-link-container'); const divFile = document.getElementById('mode-file-container'); if (mode === 'link') { btnLink?.classList.replace('text-gray-400', 'bg-blue-600'); btnLink?.classList.add('text-white'); btnFile?.classList.replace('bg-blue-600', 'text-gray-400'); btnFile?.classList.remove('text-white'); divLink?.classList.remove('hidden'); divFile?.classList.add('hidden'); } else { btnFile?.classList.replace('text-gray-400', 'bg-blue-600'); btnFile?.classList.add('text-white'); btnLink?.classList.replace('bg-blue-600', 'text-gray-400'); btnLink?.classList.remove('text-white'); divFile?.classList.remove('hidden'); divLink?.classList.add('hidden'); } };
+        window.handleFileSelect = (input) => { const file = input.files[0]; if (!file) return; document.getElementById('upload-icon-area')?.classList.add('hidden'); document.getElementById('upload-progress')?.classList.remove('hidden'); document.getElementById('upload-filename').innerText = file.name; let progress = 0; const bar = document.getElementById('progress-bar'); const text = document.getElementById('progress-percent'); const interval = setInterval(() => { progress += Math.random() * 15; if (progress >= 100) { progress = 100; clearInterval(interval); uploadedFileUrl = `https://elshori7y.app/files/${file.name}`; text.innerText = "تم الرفع! ✅"; text.classList.add('text-green-400'); bar.classList.add('bg-green-500'); } bar.style.width = `${progress}%`; text.innerText = `${Math.floor(progress)}%`; }, 150); };
+
+        if (document.getElementById('app-form')) {
+            document.getElementById('app-form').onsubmit = async (e) => {
+                e.preventDefault(); if (!userProfile || userProfile.role !== 'developer') return showToast("يجب أن تكون مطوراً للنشر");
+                let finalUrl = currentUploadMode === 'link' ? document.getElementById('app-url').value : uploadedFileUrl; if (currentUploadMode === 'file' && !uploadedFileUrl) return showToast("يرجى رفع الملف");
+                const btn = e.target.querySelector('button[type="submit"]'); btn.innerHTML = `<i data-lucide="loader-2" class="loading-spinner w-4 h-4"></i>`; btn.disabled = true;
+                try {
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'apps'), { name: document.getElementById('app-name').value, description: document.getElementById('app-desc').value, url: finalUrl, icon: document.getElementById('app-icon').value || "📦", developerId: userProfile.uid, developerName: userProfile.username, category: document.getElementById('app-category').value, status: 'pending', reports: 0, downloads: 0, createdAt: Date.now() });
+                    showToast("تم الإرسال للمراجعة!"); e.target.reset(); document.getElementById('upload-progress')?.classList.add('hidden'); document.getElementById('upload-icon-area')?.classList.remove('hidden'); uploadedFileUrl = null; showSection('home');
+                } catch (err) {} finally { btn.disabled = false; btn.innerHTML = `<span>إرسال</span> <i data-lucide="send" class="w-4 h-4"></i>`; lucide.createIcons(); }
+            };
+        }
+
+        // --- ADMIN PANEL ---
+        function renderAdminPanel() {
+            if (userProfile?.uid !== 'founder_hamza_shaheen' && userProfile?.email !== 'sheenomat@gmail.com') return;
+            const pendingApps = allAppsRaw.filter(a => a.status === 'pending');
+            const reportedApps = allAppsRaw.filter(a => a.reports > 0);
+            const reportedPosts = allPosts.filter(p => p.reports > 0);
+            
+            const grid = document.getElementById('admin-grid');
+            if (grid) {
+                if (pendingApps.length === 0) grid.innerHTML = '<div class="col-span-full text-gray-500 py-4 glass text-center">لا توجد طلبات معلقة.</div>';
+                else grid.innerHTML = pendingApps.map(app => `<div class="glass p-5 rounded-2xl border border-amber-500/20"><h3 class="font-bold text-white mb-2">${app.name}</h3><p class="text-xs text-blue-300 mb-2">المطور: ${app.developerName}</p><div class="flex gap-2"><button onclick="window.updateAppStatus('${app.id}', 'approved', '${app.developerId}', '${app.name.replace(/'/g, "\\'")}')" class="flex-1 bg-green-600 py-2 rounded text-xs text-white">قبول</button><button onclick="window.deleteApp('${app.id}')" class="flex-1 bg-red-600/20 text-red-400 py-2 rounded text-xs border border-red-600/30">رفض</button></div></div>`).join('');
+            }
+            
+            const rGrid = document.getElementById('admin-reports-grid');
+            if (rGrid) {
+                let html = '';
+                reportedApps.forEach(app => {
+                    html += `<div class="glass p-4 rounded-xl border border-red-500/30"><div class="text-red-400 font-bold mb-2 flex items-center gap-1"><i data-lucide="alert-triangle" class="w-4 h-4"></i> تطبيق مبلّغ عنه (${app.reports})</div><h3 class="font-bold text-white">${app.name}</h3><p class="text-xs text-gray-400 mb-3">${app.description}</p><div class="flex gap-2"><button onclick="window.clearAppReports('${app.id}')" class="flex-1 bg-slate-700 py-1 rounded text-xs text-white">تجاهل البلاغات</button><button onclick="window.deleteApp('${app.id}')" class="flex-1 bg-red-600 py-1 rounded text-xs text-white">حذف التطبيق</button></div></div>`;
+                });
+                reportedPosts.forEach(post => {
+                    html += `<div class="glass p-4 rounded-xl border border-red-500/30"><div class="text-red-400 font-bold mb-2 flex items-center gap-1"><i data-lucide="alert-triangle" class="w-4 h-4"></i> منشور مبلّغ عنه (${post.reports})</div><p class="text-sm text-gray-300 mb-3">"${post.content}"</p><div class="text-xs text-gray-500 mb-3">بواسطة: ${post.authorName}</div><div class="flex gap-2"><button onclick="window.clearPostReports('${post.id}')" class="flex-1 bg-slate-700 py-1 rounded text-xs text-white">تجاهل البلاغات</button><button onclick="window.deletePost('${post.id}')" class="flex-1 bg-red-600 py-1 rounded text-xs text-white">حذف المنشور</button></div></div>`;
+                });
+                if(html === '') html = '<div class="col-span-full text-gray-500 py-4 glass text-center">لا توجد بلاغات حالياً.</div>';
+                rGrid.innerHTML = html;
+            }
+            lucide.createIcons();
+        }
+
+        window.verifyUser = async () => { const username = document.getElementById('admin-verify-username').value.trim(); if (!username) return; try { const docRef = (await getDocs(query(collection(db, 'artifacts', appId, 'public', 'data', 'users'), where('username', '==', username)))).docs[0]; if(docRef) { await updateDoc(docRef.ref, { isVerified: true }); showToast(`تم توثيق ${username}`); } } catch(e){} };
+        window.unverifyUser = async () => { const username = document.getElementById('admin-verify-username').value.trim(); if (!username) return; try { const docRef = (await getDocs(query(collection(db, 'artifacts', appId, 'public', 'data', 'users'), where('username', '==', username)))).docs[0]; if(docRef) { await updateDoc(docRef.ref, { isVerified: false }); showToast(`تم إلغاء توثيق ${username}`); } } catch(e){} };
+        window.updateAppStatus = async (id, status, devId, appName) => { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'apps', id), { status }); showToast("تم القبول"); if(status==='approved' && devId) window.sendNotification(devId, `✅ تمت الموافقة على تطبيقك: ${appName}`, 'check-circle'); };
+        window.deleteApp = async (id) => { if(confirm("حذف التطبيق؟")) { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'apps', id)); showToast("تم الحذف"); } };
+        window.deletePost = async (id) => { if(confirm("حذف المنشور؟")) { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'posts', id)); showToast("تم الحذف"); } };
+        window.clearAppReports = async (id) => { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'apps', id), { reports: 0 }); showToast("تم المسح"); };
+        window.clearPostReports = async (id) => { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'posts', id), { reports: 0 }); showToast("تم المسح"); };
+
+        function showToast(text) { 
+            const toast = document.getElementById('notification'); document.getElementById('notif-text').innerText = text; 
+            const oldIcon = document.getElementById('toast-icon'); const newIcon = document.createElement('i'); newIcon.id = 'toast-icon';
+            if(text.includes('✨') || text.includes('إلهام')) { newIcon.setAttribute('data-lucide', 'sparkles'); newIcon.setAttribute('class', 'text-amber-400 w-5 h-5'); } else if (text.includes('خطأ') || text.includes('غير')) { newIcon.setAttribute('data-lucide', 'alert-circle'); newIcon.setAttribute('class', 'text-red-400 w-5 h-5'); } else { newIcon.setAttribute('data-lucide', 'bell'); newIcon.setAttribute('class', 'text-blue-400 w-5 h-5'); }
+            if (oldIcon && oldIcon.parentNode) oldIcon.parentNode.replaceChild(newIcon, oldIcon);
+            lucide.createIcons(); toast?.classList.remove('translate-y-20', 'opacity-0'); setTimeout(() => toast?.classList.add('translate-y-20', 'opacity-0'), 4000); 
+        }
+
+        // --- GEMINI API & AI LOGIC ---
+        const geminiApiKey = ""; const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiApiKey}`;
+        async function callGemini(prompt) { try { let payload = typeof prompt === 'string' ? { contents: [{ parts: [{ text: prompt }] }] } : prompt; const response = await fetch(GEMINI_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); if (!response.ok) throw new Error("API Error"); const data = await response.json(); return data.candidates[0].content.parts[0].text; } catch (error) { throw error; } }
+
+        window.enhanceDescription = async () => { const el = document.getElementById('app-desc'); if (el.value.length < 5) return showToast("اكتب وصفاً أولاً"); const btn = document.querySelector('button[onclick="enhanceDescription()"]'); const old = btn.innerHTML; btn.innerHTML = `<i data-lucide="loader-2" class="w-3 h-3 loading-spinner inline"></i>`; btn.disabled = true; try { el.value = await callGemini(`Rewrite to be exciting with emojis in Arabic: "${el.value}"`); showToast("تم ✨"); } catch(e){} finally { btn.innerHTML = old; btn.disabled = false; lucide.createIcons(); } };
+        window.autoCategorize = async () => { const desc = document.getElementById('app-desc').value; if(desc.length < 10) return showToast("اكتب وصفاً أولاً"); try { const cat = (await callGemini(`Choose category for this app [games, social, tools, education, other]. Reply 1 word.\nDesc: ${desc}`)).trim().toLowerCase(); document.getElementById('app-category').value = ['games','social','tools','education','other'].includes(cat) ? cat : 'other'; showToast("تم التحديد ✨"); } catch(e){} };
+        window.suggestAppName = async () => { const el = document.getElementById('app-name'); const desc = document.getElementById('app-desc').value; if (desc.length < 10) return showToast("اكتب وصفاً"); el.placeholder="✨..."; try { el.value = (await callGemini(`Suggest 1 short Arabic app name for: "${desc}". No quotes.`)).replace(/["']/g,""); } catch(e){} finally { el.placeholder="اكتب الاسم"; } };
+        window.suggestAppIcon = async () => { const el = document.getElementById('app-icon'); const name = document.getElementById('app-name').value; if (!name) return showToast("اكتب اسماً"); el.placeholder="✨..."; try { el.value = (await callGemini(`Suggest EXACTLY ONE emoji for app: ${name}. Reply 1 emoji only.`)).trim().split(/\s+/)[0]; } catch(e){} finally { el.placeholder="🎮"; } };
+        window.enhancePost = async (id) => { const el = document.getElementById(id); if (el.value.length < 5) return showToast("اكتب شيئاً"); const old = el.value; el.placeholder="✨..."; el.value=""; try { el.value = await callGemini(`Rewrite this post in Arabic to be engaging with emojis: "${old}"`); } catch(e){el.value=old;} };
+        window.suggestComment = async (id) => { const post = allPosts.find(p=>p.id===id); if(!post) return; const el = document.getElementById(`comment-input-${id}`); el.placeholder="✨..."; try { el.value = (await callGemini(`اكتب رداً إيجابياً قصيراً جداً على: "${post.content}"`)).replace(/["']/g,""); } catch(e){} };
+        window.generateAppIdea = async () => { const box = document.getElementById('idea-result'); box.classList.remove('hidden'); box.innerHTML="<i data-lucide='loader-2' class='w-4 h-4 loading-spinner inline'></i>..."; try { box.innerHTML = marked.parse(await callGemini("اقترح فكرة تطبيق موبايل مبتكرة للمستخدم العربي (اسم، فئة، وصف).")); } catch(e){} lucide.createIcons(); };
+        window.summarizeCommunity = async () => { const box = document.getElementById('community-pulse-result'); box.classList.remove('hidden'); box.innerHTML="<i data-lucide='loader-2' class='w-4 h-4 loading-spinner inline'></i>..."; try { const txt = allPosts.slice(0,10).map(p=>p.content).join(" | "); box.innerHTML = `<h4 class="font-bold text-amber-400 mb-2">نبض المجتمع:</h4>` + marked.parse(await callGemini(`لخص هذه المنشورات في فقرة واحدة ممتعة: ${txt}`)); } catch(e){} };
+        window.generateMarketingPost = async (id) => { const app = allApprovedApps.find(a=>a.id===id); if(!app) return; try { const res = await callGemini(`اكتب منشور تسويقي لتطبيق ${app.name}: ${app.description}`); switchProfileTab('posts'); document.getElementById('profile-post-content').value = res.replace(/["']/g,""); showToast("تم ✨"); } catch(e){} };
+        
+        window.analyzeAppSuccess = async (id) => { const app = allApprovedApps.find(a=>a.id===id); const box = document.getElementById(`analysis-result-${id}`); box.className = 'mt-1 mb-3 p-3 bg-slate-900/60 rounded-lg text-xs text-gray-300 whitespace-pre-wrap leading-relaxed border border-emerald-500/30'; box.innerHTML="<i data-lucide='loader-2' class='w-4 h-4 loading-spinner inline text-emerald-400'></i>..."; try { box.innerHTML = `<h4 class="font-bold text-emerald-400 mb-2">تحليل التطبيق:</h4>` + marked.parse(await callGemini(`كمحلل، أعطني 3 نقاط قوة ونقطة تحسين لـ ${app.name}: ${app.description}`)); } catch(e){} lucide.createIcons(); };
+        window.generateUserPersona = async (id) => { const app = allApprovedApps.find(a=>a.id===id); const box = document.getElementById(`analysis-result-${id}`); box.className = 'mt-1 mb-3 p-3 bg-slate-900/60 rounded-lg text-xs text-gray-300 whitespace-pre-wrap leading-relaxed border border-cyan-500/30'; box.innerHTML="<i data-lucide='loader-2' class='w-4 h-4 loading-spinner inline text-cyan-400'></i>..."; try { box.innerHTML = `<h4 class="font-bold text-cyan-400 mb-2 flex items-center gap-1"><i data-lucide="users" class="w-4 h-4"></i> الجمهور المستهدف (Persona):</h4>` + marked.parse(await callGemini(`بناءً على التطبيق، اكتب "شخصية مستخدم" دقيقة بالعربية تشمل: الاسم، العمر، المهنة، المشاكل، وكيف سيحل التطبيق مشكلته.\nالتطبيق: ${app.name}\nالوصف: ${app.description}`)); } catch(e){} lucide.createIcons(); };
+        window.generateAppSlogan = async (id) => { const app = allApprovedApps.find(a=>a.id===id); const box = document.getElementById(`analysis-result-${id}`); box.className = 'mt-1 mb-3 p-3 bg-slate-900/60 rounded-lg text-xs text-gray-300 whitespace-pre-wrap leading-relaxed border border-pink-500/30'; box.innerHTML="<i data-lucide='loader-2' class='w-4 h-4 loading-spinner inline text-pink-400'></i>..."; try { box.innerHTML = `<h4 class="font-bold text-pink-400 mb-2 flex items-center gap-1"><i data-lucide="megaphone" class="w-4 h-4"></i> شعارات تسويقية مقترحة:</h4>` + marked.parse(await callGemini(`ابتكر 3 شعارات تسويقية (Slogans) قصيرة وجذابة بالعربية لهذا التطبيق.\nالتطبيق: ${app.name}\nالوصف: ${app.description}`)); } catch(e){} lucide.createIcons(); };
+        window.generateCompetitorAnalysis = async (id) => { const app = allApprovedApps.find(a=>a.id===id); const box = document.getElementById(`analysis-result-${id}`); box.className = 'mt-1 mb-3 p-3 bg-slate-900/60 rounded-lg text-xs text-gray-300 whitespace-pre-wrap leading-relaxed border border-rose-500/30'; box.innerHTML="<i data-lucide='loader-2' class='w-4 h-4 loading-spinner inline text-rose-400'></i>..."; try { box.innerHTML = `<h4 class="font-bold text-rose-400 mb-2 flex items-center gap-1"><i data-lucide="target" class="w-4 h-4"></i> تحليل المنافسين:</h4>` + marked.parse(await callGemini(`أنت خبير استراتيجي. اذكر 3 تطبيقات منافسة (حقيقية أو محتملة) لهذا التطبيق، واقترح ميزتين للتغلب عليهم بالعربية.\nالتطبيق: ${app.name}\nالوصف: ${app.description}`)); } catch(e){} lucide.createIcons(); };
+        window.generateAppFAQ = async (id) => { const app = allApprovedApps.find(a=>a.id===id); const box = document.getElementById(`analysis-result-${id}`); box.className = 'mt-1 mb-3 p-3 bg-slate-900/60 rounded-lg text-xs text-gray-300 whitespace-pre-wrap leading-relaxed border border-fuchsia-500/30'; box.innerHTML="<i data-lucide='loader-2' class='w-4 h-4 loading-spinner inline text-fuchsia-400'></i>..."; try { box.innerHTML = `<h4 class="font-bold text-fuchsia-400 mb-2 flex items-center gap-1"><i data-lucide="help-circle" class="w-4 h-4"></i> أسئلة شائعة (FAQ):</h4>` + marked.parse(await callGemini(`اكتب 4 أسئلة شائعة (FAQ) مع إجاباتها الوافية لهذا التطبيق لتوضع في صفحة الدعم الفني بالعربية.\nالتطبيق: ${app.name}\nالوصف: ${app.description}`)); } catch(e){} lucide.createIcons(); };
+
+        window.generateDiscussionPrompt = async (id) => { const el = document.getElementById(id); const old = el.placeholder; el.placeholder="✨..."; el.value=""; el.disabled=true; try { el.value = (await callGemini("اكتب سؤال نقاشي واحد قصير ومثير للاهتمام حول البرمجة لتنشره في المجتمع.")).replace(/["']/g,""); } catch(e){} finally { el.placeholder=old; el.disabled=false; el.focus(); } };
+        window.getAIRecommendation = async () => { const input = document.getElementById('ai-recommend-input').value; if(!input) return; const box = document.getElementById('ai-recommend-result'); box.classList.remove('hidden'); box.innerHTML="<i data-lucide='loader-2' class='w-4 h-4 loading-spinner inline'></i>..."; try { const ctx = allApprovedApps.map(a=>`${a.name}: ${a.description}`).join('\n'); box.innerHTML = marked.parse(await callGemini(`المستخدم يريد: ${input}. رشح له تطبيقاً من هذه القائمة مع السبب: ${ctx}`)); } catch(e){} };
+
+        window.buildAppWithAI = async () => {
+            if (!userProfile) return showToast("سجل الدخول لصنع تطبيق!"); const prompt = document.getElementById('ai-app-prompt').value; if(prompt.length<5) return showToast("اكتب تفاصيل أكثر");
+            const btn = document.getElementById('btn-generate-app'); btn.disabled=true; btn.innerHTML=`<i data-lucide="loader-2" class="w-4 h-4 loading-spinner inline"></i>`; document.getElementById('ai-app-result-area')?.classList.add('hidden');
+            try {
+                let code = await callGemini(`Create a single file HTML app/game for beginner. Put ALL CSS in <style>, JS in <script>. Use Tailwind CDN. Make it beautiful. Request: "${prompt}". Output pure HTML starting with <!DOCTYPE html>. No markdown ticks.`);
+                code = code.replace(/^```(html)?\n?/i, '').replace(/\n?```$/i, '').trim(); document.getElementById('ai-app-code-display').value = code; document.getElementById('ai-app-iframe').srcdoc = code;
+                document.getElementById('ai-app-result-area')?.classList.remove('hidden'); switchAITab('preview'); showToast("تمت البرمجة ✨");
+            } catch(e) {} finally { btn.disabled=false; btn.innerHTML=`اصنع تطبيقي الآن <i data-lucide="wand-2" class="w-4 h-4"></i>`; lucide.createIcons(); }
+        };
+
+        window.explainCodeWithAI = async () => {
+            const code = document.getElementById('ai-app-code-display').value; if (!code) return showToast("لا يوجد كود لشرحه!"); showToast("جاري تبسيط الكود... 👨‍🏫");
+            document.getElementById('review-modal-title').innerText = "شرح الكود المبسط";
+            document.getElementById('review-modal-icon')?.setAttribute('data-lucide', 'book-open');
+            document.getElementById('review-modal')?.classList.remove('hidden'); const rb = document.getElementById('review-content');
+            rb.innerHTML = `<div class="text-center py-10"><i data-lucide="loader-2" class="w-8 h-8 loading-spinner inline text-emerald-400"></i><p class="mt-2 text-gray-400">المعلم الذكي يقرأ الكود...</p></div>`; lucide.createIcons();
+            try { rb.innerHTML = marked.parse(await callGemini(`أنت معلم برمجة ودود. اشرح هذا الكود ببساطة تامة للمبتدئين باللغة العربية. قسم الشرح إلى: 1. الهيكل (HTML) 2. التصميم (CSS) 3. المنطق (JS). لا تطل الشرح.\nالكود:\n${code.substring(0, 2000)}`)); } catch(e) { rb.innerHTML = "<p class='text-red-400'>حدث خطأ.</p>"; }
+        };
+
+        window.reviewCodeWithAI = async () => {
+            const code = document.getElementById('ai-app-code-display').value; if (!code) return showToast("لا يوجد كود!"); showToast("جاري التحليل... 🕵️‍♂️");
+            document.getElementById('review-modal-title').innerText = "تحليل الكود الذكي";
+            document.getElementById('review-modal-icon')?.setAttribute('data-lucide', 'microscope');
+            document.getElementById('review-modal')?.classList.remove('hidden'); const rb = document.getElementById('review-content');
+            rb.innerHTML = `<div class="text-center py-10"><i data-lucide="loader-2" class="w-8 h-8 loading-spinner inline text-purple-400"></i></div>`; lucide.createIcons();
+            try { rb.innerHTML = marked.parse(await callGemini(`Act as a coding tutor. Review this HTML/JS code. Point out 1 good thing, 1 suggestion. Short Arabic.\nCode:\n${code.substring(0, 2000)}`)); } catch(e) { rb.innerHTML = "<p class='text-red-400'>خطأ</p>"; }
+        };
+        window.translateDescription = async () => { const el = document.getElementById('app-desc'); if (el.value.length < 5) return showToast("اكتب وصفاً"); const old = el.value; el.disabled=true; el.placeholder="جاري الترجمة..."; try { el.value = (await callGemini(`Translate to English if Arabic, or Arabic if English: "${old}"`)).trim(); showToast("تمت الترجمة 🌐"); } catch(e){} finally { el.disabled=false; el.placeholder=old; } };
+
+        window.switchAITab = (tab) => { document.getElementById('tab-ai-preview')?.classList.remove('active'); document.getElementById('tab-ai-code')?.classList.remove('active'); document.getElementById(`tab-ai-${tab}`)?.classList.add('active'); document.getElementById('ai-content-preview')?.classList.add('hidden'); document.getElementById('ai-content-code')?.classList.add('hidden'); document.getElementById(`ai-content-${tab}`)?.classList.remove('hidden'); };
+        window.copyAICode = () => navigator.clipboard.writeText(document.getElementById('ai-app-code-display').value).then(()=>showToast("تم النسخ!"));
+
+        window.toggleChat = () => { document.getElementById('chat-window')?.classList.toggle('hidden'); document.getElementById('chat-input')?.focus(); };
+        window.handleChatEnter = (e) => { if (e.key === 'Enter') window.sendMessage(); };
+        window.sendMessage = async () => {
+            const input = document.getElementById('chat-input'); const msg = input.value.trim(); if (!msg) return; appendMessage(msg, 'user'); input.value = ''; const typingId = appendMessage("...", 'ai', true);
+            try {
+                const sys = `You are "مساعد Elshori7y" for an app store. Respond in Arabic/English. Your creator is "Hamza Shaheen". CRITICAL: Refuse bad words strictly. Apps: ${allApprovedApps.map(a=>a.name).join(',')}`;
+                chatHistory.push({ role: "user", parts: [{ text: msg }] }); const reply = await callGemini({ contents: chatHistory, systemInstruction: { parts: [{ text: sys }] } });
+                chatHistory.push({ role: "model", parts: [{ text: reply }] }); document.getElementById(typingId)?.remove(); appendMessage(reply, 'ai');
+            } catch (e) { document.getElementById(typingId)?.remove(); chatHistory.pop(); }
+        };
+        function appendMessage(txt, snd, typing=false) { const div = document.createElement('div'); div.className = `chat-bubble chat-${snd} ${typing?'animate-pulse':''}`; if(typing) div.id = `msg-${Date.now()}`; div.innerHTML = marked.parse(txt); const c = document.getElementById('chat-messages'); c?.appendChild(div); if(c) c.scrollTop = c.scrollHeight; return div.id; }
+    </script>
+</body>
+</html>
