@@ -1,28 +1,20 @@
 export default {
   async fetch(request, env) {
-    const url = new URL(request.url);
+    try {
+      const url = new URL(request.url);
+      let response = await env.ASSETS.fetch(request);
 
-    // Always serve the SPA entry point at the root.
-    if (url.pathname === "/" || url.pathname === "") {
-      const indexUrl = new URL("/index.html", request.url);
-      return env.ASSETS.fetch(new Request(indexUrl, {
-        method: "GET",
-        headers: request.headers
-      }));
+      if (response.status === 404 && !url.pathname.includes('.')) {
+        const indexUrl = new URL('/index.html', request.url);
+        response = await env.ASSETS.fetch(new Request(indexUrl.toString(), request));
+      }
+
+      return response;
+    } catch (error) {
+      return new Response(
+        `Elshori7y Worker Error\n${error?.message || String(error)}`,
+        { status: 500, headers: { 'content-type': 'text/plain; charset=UTF-8' } }
+      );
     }
-
-    // Serve files from /public.
-    const response = await env.ASSETS.fetch(request);
-
-    // Support SPA/client-side routes.
-    if (response.status === 404 && !url.pathname.includes(".")) {
-      const indexUrl = new URL("/index.html", request.url);
-      return env.ASSETS.fetch(new Request(indexUrl, {
-        method: "GET",
-        headers: request.headers
-      }));
-    }
-
-    return response;
   }
 };
