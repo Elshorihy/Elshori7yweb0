@@ -3,6 +3,12 @@
   "compatibility_date": "2026-08-16",
   "assets": {
     "directory": ".",
-    "binding": "ASSETS"
+    {
+  "name": "elshori7yweb0",
+  "compatibility_date": "2026-08-16",
+  "assets": {
+    "directory": "."
+  }
+}
   }
 }
