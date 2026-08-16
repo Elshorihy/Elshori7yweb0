@@ -1,9 +1,9 @@
 {
   "name": "elshori7yweb0",
   "compatibility_date": "2026-08-16",
-  "main": "_worker.js",
+  "main": "worker.js",
   "assets": {
-    "directory": ".",
+    "directory": "./public",
     "binding": "ASSETS"
   }
 }
