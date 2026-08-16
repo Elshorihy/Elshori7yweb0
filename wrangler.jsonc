@@ -1,5 +1,8 @@
 {
+  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "elshori7yweb0",
-  "pages_build_output_dir": "./public",
-  "compatibility_date": "2026-08-16"
+  "compatibility_date": "2026-08-16",
+  "assets": {
+    "directory": "./public"
+  }
 }
